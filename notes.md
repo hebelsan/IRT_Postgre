@@ -10,6 +10,10 @@ Problem: the results of the pymediawiki query do not 100% match with the results
 
 
 
+Bei der Benutzung der Wikipedia bibliothek stellte sich heraus, dass manche seiten keine sektion mit Kontent haben, sondern nur ein summary. Daher erstellte ich für jede seite eine zusätzliche sektion summary. Des Weiteren stellte sich heraus, dass manche sektionen nur als Überschrift für eine weitere Unterkategorie erstellt wurde und somit auch keinen Text enthält. Hier änderte ich den Code, sodass diese Sektionen mit keinem Inhalt nicht mit in die Datenbank aufgenommen werden.
+
+
+
 ## Rating Algorithmus
 
 - Wie oft kommt das gesuchte Wort im Text vor (vergleich wie groß ist der Text generell)

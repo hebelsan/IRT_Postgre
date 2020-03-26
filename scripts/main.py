@@ -8,7 +8,7 @@ if __name__ == '__main__':
         print('2: create necessary tables')
         print('3: show tables')
         print('4: insert wiki pages')
-        #print('5: insert from file')
+        print('5: empty tables')
         #print('6: delete row')
         num = input('')
         if num == '0':
@@ -25,6 +25,8 @@ if __name__ == '__main__':
             category = input('wikipedia category: ')
             pages = input('number of pages: ')
             db_insert_wiki(wiki_category=category, num_pages=int(pages))
+        elif num == '5':
+            db_reset()
         else:
             print('please insert a valid input')
     

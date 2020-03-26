@@ -24,7 +24,6 @@ class WikiScratcher:
                                     results=num_pages, subcategories=False)
         for p_title in page_titles:
             res[p_title] = {}
-            print(p_title)
             p = self.wikipedia.page(p_title)
             # add the summary
             res[p_title]['summary'] = p.summary
@@ -34,7 +33,8 @@ class WikiScratcher:
                 # ignore sections like 'references' or 'see also'
                 if (self._ignore_section(s_title)):
                     continue
-                res[p_title][s_title] = p.section(s_title)
-                print(s_title)
-            print('')
+                section_text = p.section(s_title)
+                # ignore empty sections which are in fact most likely subheaders
+                if len(section_text) > 0:
+                    res[p_title][s_title] = section_text
         return res

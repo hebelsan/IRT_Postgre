@@ -31,7 +31,7 @@ def create_tables(conn, cur):
                     id BIGSERIAL PRIMARY KEY, \
                     page_id INTEGER NOT NULL, \
                     section_title VARCHAR (50), \
-                    tsv tsvector, \
+                    section_tsv tsvector, \
                     num_words integer, \
                     FOREIGN KEY (page_id) REFERENCES wiki_pages (id) ON DELETE CASCADE);")
     conn.commit()
@@ -86,13 +86,14 @@ def db_show_tables():
         conn = get_connection()
         cur = conn.cursor()
         print("wiki_pages:")
-        cur.execute("SELECT * FROM wiki_pages;")
+        # cur.execute("SELECT * FROM wiki_pages;")
+        cur.execute("SELECT id, page_title, num_sections, num_words FROM wiki_pages;")
         rows = cur.fetchall()
         for row in rows:
             print(row)
         print("")
         print("page_sections:")
-        cur.execute("SELECT * FROM page_sections;")
+        cur.execute("SELECT id, page_id, section_title, num_words FROM page_sections;")
         rows = cur.fetchall()
         for row in rows:
             print(row)
@@ -116,6 +117,24 @@ def db_insert_wiki(wiki_category, num_pages):
         conn = get_connection()
         cur = conn.cursor()
         
+        for page_name, section_data in wiki_data.items():
+            page_num_words = 0
+            section_titles = section_data.keys()
+            sql_string = "INSERT INTO wiki_pages (page_title, num_sections) \
+                            VALUES (%s, %s) RETURNING id;"
+            cur.execute(sql_string, (page_name, len(section_titles)))
+            id_of_new_row = cur.fetchone()[0]
+            
+            for sec_title, sec_text in section_data.items():
+                sec_num_words = len(sec_text)
+                page_num_words += sec_num_words
+                sql_string = "INSERT INTO page_sections (page_id, section_title, \
+                                                         section_tsv, num_words) \
+                                VALUES (%s, %s, setweight(to_tsvector('english', COALESCE(%s,'')), 'B'), %s);"
+                cur.execute(sql_string, (id_of_new_row, sec_title, sec_text, sec_num_words))
+            sql_string = "UPDATE wiki_pages SET num_words = %s WHERE id = %s;"
+            cur.execute(sql_string, (page_num_words, id_of_new_row))
+            conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
@@ -125,6 +144,7 @@ def db_insert_wiki(wiki_category, num_pages):
             print("Database connection closed.")
 
 
+'''
 # seaches the table for a specific term in title and content and returns the id of the document
 def db_search_term(term):
     conn = None
@@ -152,23 +172,16 @@ def db_search_term(term):
         if conn is not None:
             conn.close()
             print("Database connection closed.")
-
-
 '''
-def db_delete_row(id):
+
+
+def db_reset():
     conn = None
     try:
-        # read connection parameters
-        params = config()
-        # connect to the PostgreSQL server
-        print("Connecting to the PostgreSQL database...")
-        conn = psycopg2.connect(**params)
-        # create a cursor
+        conn = get_connection()
         cur = conn.cursor()
-        # execute a statement
-        cur.execute("""DELETE FROM documents WHERE documents.id = (%s);""", (id,))
+        cur.execute("DELETE FROM wiki_pages;")
         conn.commit()
-        # close the communication with the PostgreSQL
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
@@ -176,4 +189,3 @@ def db_delete_row(id):
         if conn is not None:
             conn.close()
             print("Database connection closed.")
-'''
