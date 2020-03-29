@@ -9,7 +9,9 @@ if __name__ == '__main__':
         print('3: show tables')
         print('4: insert wiki pages')
         print('5: empty tables')
-        #print('6: delete row')
+        print('6: search term')
+        print('7: insert test data')
+        print('8: drop all databases and functions')
         num = input('')
         if num == '0':
             exit()
@@ -27,6 +29,14 @@ if __name__ == '__main__':
             db_insert_wiki(wiki_category=category, num_pages=int(pages))
         elif num == '5':
             db_reset()
+        elif num == '6':
+            print('term could be a single word or multiple connected with &(AND), |(OR), !(NOT), <N>(Followed by)')
+            term = input('term: ')
+            db_search_term(term)
+        elif num == '7':
+            db_insert_testdata()
+        elif num == '8':
+            db_drop_all_tables()
         else:
             print('please insert a valid input')
     
