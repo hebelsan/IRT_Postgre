@@ -1,4 +1,6 @@
 import psycopg2
+import psycopg2.extras
+from psycopg2.extras import Json
 from os import path
 from config import config
 from wiki_pipeline import WikiScratcher
@@ -9,6 +11,27 @@ def get_connection():
     # connect to the PostgreSQL server
     print("Connecting to the PostgreSQL database...")
     return psycopg2.connect(**params)
+
+
+# example input: 'corona':13C 'differ':4C 'exampl':9C 'name':12C 'type':5C 'various':3C 'virus':7C,11C
+def cast_tsv(text, cur):
+    if text is None:
+        return None
+    
+    # create dictionary
+    dict = {}
+    text = text.replace("'", "")
+    word_array = text.split(" ")
+    for word_locations in word_array:
+        word_loc = word_locations.split(":")
+        word = word_loc[0]
+        locations = word_loc[1].split(",")
+        dict[word] = locations
+    
+    if dict:
+        return dict
+    else:
+        raise InterfaceError("bad tsv representation: %r" % text)
 
 
 def create_tables(conn, cur):
@@ -60,7 +83,7 @@ def create_tables(conn, cur):
     # create view
     sql_view_string = "CREATE VIEW search_pages AS \
                        SELECT \
-                            text 'wiki_pages' AS origin_table, id AS id, weighted_title_tsv AS unified_tsv \
+                            text 'page_title' AS origin_table, id AS id, weighted_title_tsv AS unified_tsv \
                        FROM \
                             wiki_pages \
                        UNION ALL \
@@ -73,8 +96,8 @@ def create_tables(conn, cur):
                             text 'sec_title' AS origin_table, page_id AS id, sec_title_tsv AS s_title \
                        FROM \
                             page_sections;"
-    cur.execute(sql_view_string)
     
+    cur.execute(sql_view_string)
     conn.commit()
     print("succefully created tables!")
 
@@ -239,19 +262,50 @@ def db_search_term(term):
     try:
         conn = get_connection()
         cur = conn.cursor()
+        # add typecast for tsv
+        '''
+        cur.execute("SELECT NULL::TSVECTOR")
+        tsv_oid = cur.description[0][1]
+        TSV = psycopg2.extensions.new_type((tsv_oid,), "TSVECTOR", cast_tsv)
+        psycopg2.extensions.register_type(TSV)
+        '''
+
+        '''
+        sql_string = "SELECT origin_table, id, to_json(unified_tsv) \
+                      FROM \
+                        search_pages \
+                      WHERE \
+                        to_tsquery('english', %s) @@ unified_tsv;"
+        '''
         sql_string = "SELECT \
+                        res.id, \
+                        res.origin_table, \
+                        res.unified_tsv, \
+                        pag.num_words \
+                     FROM wiki_pages AS pag \
+                     INNER JOIN \
+                     (SELECT \
                         id, \
                         ARRAY_AGG(origin_table) AS origin_table, \
-                        ARRAY_AGG(unified_tsv) AS unified_tsv \
+                        json_agg(unified_tsv) AS unified_tsv \
                       FROM \
                         search_pages \
                       WHERE \
                         to_tsquery('english', %s) @@ unified_tsv \
                       GROUP BY \
-                        id";
+                        id) AS res \
+                        on pag.id = res.id;"
         cur.execute(sql_string, (term,))
         res = cur.fetchall()
         print(res)
+        '''
+        page_tuple = res[0]
+        page_id = page_tuple[0]  # origins are 'page_title', 'sec_title' or 'sec_text'
+        word_origins = page_tuple[1]  # origins could be 'page_title', 'sec_title' or 'sec_text'
+        ts_vector = page_tuple[2]
+        print(type(ts_vector))
+        print(ts_vector['virus'])
+        '''
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
