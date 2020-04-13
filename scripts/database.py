@@ -96,8 +96,42 @@ def create_tables(conn, cur):
                             text 'sec_title' AS origin_table, page_id AS id, sec_title_tsv AS s_title \
                        FROM \
                             page_sections;"
-    
     cur.execute(sql_view_string)
+    
+    # create function to aggregate ts_vectors
+    aggregate_function_string = "CREATE AGGREGATE tsvector_agg (tsvector) ( \
+	                               STYPE = pg_catalog.tsvector, \
+	                               SFUNC = pg_catalog.tsvector_concat, \
+	                               INITCOND = '' \
+                                );"
+    cur.execute(aggregate_function_string)
+    
+    # create function for word count in tsvectors
+    lexeme_occurrences_function = "CREATE OR REPLACE FUNCTION lexeme_occurrences ( \
+                IN _lexemes tsvector \
+            ,   IN _word text \
+            ,   IN _config regconfig \
+            ,   OUT lexeme_count int \
+            ,   OUT lexeme_positions int[] \
+            ) RETURNS RECORD \
+            AS $$ \
+            DECLARE \
+                _searched_lexeme tsvector := strip ( to_tsvector ( _config, _word ) ); \
+                _occurences_pattern text := _searched_lexeme::text || ':([0-9A-D,]+)'; \
+                _occurences_list text := substring ( _lexemes::text, _occurences_pattern ); \
+            BEGIN \
+                SELECT \
+                    count ( a ) \
+                ,   array_agg ( REGEXP_REPLACE(a, '[A-D]', '')::int ) \
+                FROM regexp_split_to_table ( _occurences_list, ',' ) a \
+                WHERE _searched_lexeme::text != '' \
+                INTO \
+                    lexeme_count \
+                ,   lexeme_positions; \
+                RETURN; \
+            END $$ LANGUAGE plpgsql;"
+    cur.execute(lexeme_occurrences_function)
+    
     conn.commit()
     print("succefully created tables!")
 
@@ -262,13 +296,15 @@ def db_search_term(term):
     try:
         conn = get_connection()
         cur = conn.cursor()
+        
+        # TODO get total number of words
+        # TODO get ts_vector of searched word
+        
         # add typecast for tsv
-        '''
         cur.execute("SELECT NULL::TSVECTOR")
         tsv_oid = cur.description[0][1]
         TSV = psycopg2.extensions.new_type((tsv_oid,), "TSVECTOR", cast_tsv)
         psycopg2.extensions.register_type(TSV)
-        '''
 
         '''
         sql_string = "SELECT origin_table, id, to_json(unified_tsv) \
@@ -281,31 +317,33 @@ def db_search_term(term):
                         res.id, \
                         res.origin_table, \
                         res.unified_tsv, \
+                        res.occurence, \
                         pag.num_words \
                      FROM wiki_pages AS pag \
                      INNER JOIN \
                      (SELECT \
                         id, \
                         ARRAY_AGG(origin_table) AS origin_table, \
-                        json_agg(unified_tsv) AS unified_tsv \
+                        tsvector_agg(unified_tsv) AS unified_tsv, \
+                        (select lexeme_count from lexeme_occurrences (tsvector_agg(unified_tsv), %s, 'english' )) AS occurence \
                       FROM \
                         search_pages \
                       WHERE \
                         to_tsquery('english', %s) @@ unified_tsv \
                       GROUP BY \
-                        id) AS res \
+                        id) \
+                      AS res \
                         on pag.id = res.id;"
-        cur.execute(sql_string, (term,))
+        cur.execute(sql_string, (term, term))
         res = cur.fetchall()
         print(res)
-        '''
-        page_tuple = res[0]
-        page_id = page_tuple[0]  # origins are 'page_title', 'sec_title' or 'sec_text'
-        word_origins = page_tuple[1]  # origins could be 'page_title', 'sec_title' or 'sec_text'
-        ts_vector = page_tuple[2]
-        print(type(ts_vector))
-        print(ts_vector['virus'])
-        '''
+        for row in res:
+            page_id = row[0]
+            word_origins = row[1]  # origins could be 'page_title', 'sec_title' or 'sec_text'
+            ts_vectors = row[2]
+            word_occurence = row[3]
+            page_word_count = row[4]
+        
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
@@ -338,6 +376,8 @@ def db_drop_all_tables():
         cur = conn.cursor()
         cur.execute("DROP FUNCTION page_title_weighted_tsv_trigger CASCADE;")
         cur.execute("DROP FUNCTION sec_title_weighted_tsv_trigger CASCADE;")
+        cur.execute("DROP AGGREGATE tsvector_agg (tsvector) CASCADE;")
+        cur.execute("DROP FUNCTION lexeme_occurrences CASCADE;")
         cur.execute("DROP TABLE wiki_pages CASCADE;")
         cur.execute("DROP TABLE page_sections CASCADE;")
         conn.commit()

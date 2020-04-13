@@ -23,6 +23,14 @@ Bei der Benutzung der Wikipedia bibliothek stellte sich heraus, dass manche seit
 
 
 
+## Mögliche Probleme
+
+- Es könnte sein das das gesuchte Wort in jedem Abschnitt vorkommt und damit der erstellte ts-vector zu groß werden würde
+- Die Stelle eines Wortes ist immer nur innerhalb eines Abschnittes eines Textes, es wäre eventuell gut noch einen offset mit zu speichern
+- Wird die View automatisch geupdated?
+
+
+
 
 
 [https://de.wikipedia.org/wiki/Tf-idf-Ma%C3%9F](https://de.wikipedia.org/wiki/Tf-idf-Maß)
@@ -30,6 +38,10 @@ Bei der Benutzung der Wikipedia bibliothek stellte sich heraus, dass manche seit
 https://www.compose.com/articles/indexing-for-full-text-search-in-postgresql/
 
 https://www.postgresql.org/docs/9.1/sql-createfunction.html
+
+
+
+https://www.programcreek.com/python/example/88977/sqlalchemy.func.to_tsvector
 
 
 
