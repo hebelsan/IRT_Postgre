@@ -6,6 +6,9 @@ from config import config
 from wiki_pipeline import WikiScratcher
 
 
+##
+#   helper function for db connection
+##
 def get_connection():
     params = config()
     # connect to the PostgreSQL server
@@ -13,7 +16,10 @@ def get_connection():
     return psycopg2.connect(**params)
 
 
-# example input: 'corona':13C 'differ':4C 'exampl':9C 'name':12C 'type':5C 'various':3C 'virus':7C,11C
+##
+#   turns a tsvector from postgres to dictionary in python
+#   example input: 'corona':13C 'differ':4C 'exampl':9C 'name':12C 'type':5C 'various':3C 'virus':7C,11C
+##
 def cast_tsv(text, cur):
     if text is None:
         return None
@@ -34,6 +40,9 @@ def cast_tsv(text, cur):
         raise InterfaceError("bad tsv representation: %r" % text)
 
 
+##
+#   helper function for db_create_tables()
+##
 def create_tables(conn, cur):
     # create table wiki_pages: page title is weight as A
     cur.execute("CREATE TABLE wiki_pages( \
@@ -83,7 +92,7 @@ def create_tables(conn, cur):
     # create view
     sql_view_string = "CREATE VIEW search_pages AS \
                        SELECT \
-                            text 'page_title' AS origin_table, id AS id, weighted_title_tsv AS unified_tsv \
+                            text 'page_title' AS origin_table, id AS id, weighted_title_tsv AS all_tsv \
                        FROM \
                             wiki_pages \
                        UNION ALL \
@@ -147,6 +156,9 @@ def db_create_init_file(database_name, user_name):
         f.write("user=" + user_name)
 
 
+##
+#   creates the tables and functions
+##
 def db_create_tables():
     conn = None
     try:
@@ -177,7 +189,9 @@ def db_create_tables():
             print("Database connection closed.")
     
 
-# prints all rows of the documents table
+##
+#   prints all rows of the documents table
+##
 def db_show_tables():
     conn = None
     try:
@@ -204,8 +218,9 @@ def db_show_tables():
             conn.close()
             print("Database connection closed.")
 
-
-# inserts a row into the documents table
+##
+#   inserts a row into the documents table
+##
 def db_insert_wiki(wiki_category, num_pages):
     wiki = WikiScratcher(category=wiki_category)
     wiki_data = wiki.get_sections(num_pages=num_pages)
@@ -242,6 +257,9 @@ def db_insert_wiki(wiki_category, num_pages):
             print("Database connection closed.")
 
 
+##
+#   inserts some test data to play around with
+##
 def db_insert_testdata():
     conn = None
     try:
@@ -290,51 +308,67 @@ def db_insert_testdata():
             print("Database connection closed.")
 
 
-# seaches the table for a specific term in title and content and returns the id of the document
+##
+# seaches the table for a specific term in title plus content and returns the id of the document
+##
 def db_search_term(term):
     conn = None
     try:
         conn = get_connection()
         cur = conn.cursor()
         
-        # TODO get total number of words
-        # TODO get ts_vector of searched word
-        
         # add typecast for tsv
         cur.execute("SELECT NULL::TSVECTOR")
         tsv_oid = cur.description[0][1]
         TSV = psycopg2.extensions.new_type((tsv_oid,), "TSVECTOR", cast_tsv)
         psycopg2.extensions.register_type(TSV)
+        
+        # get term frequency
+        sql_term_frequency = "SELECT ndoc, nentry \
+                                FROM ts_stat('SELECT \
+                                                res.all_tsv \
+                                             FROM wiki_pages AS pag \
+                                             INNER JOIN \
+                                             (SELECT \
+                                                id, \
+                                                tsvector_agg(all_tsv) AS all_tsv \
+                                              FROM \
+                                                search_pages \
+                                              GROUP BY \
+                                                id) \
+                                              AS res \
+                                                on pag.id = res.id') \
+                                WHERE word = %s;"
+        cur.execute(sql_term_frequency, (term,))
+        pair = cur.fetchone()
+        ndoc = pair[0] #  the number of documents (tsvectors) the word occurred in
+        nentry = pair[1] # the total number of occurrences of the word.
+        
+        print(pair)
 
-        '''
-        sql_string = "SELECT origin_table, id, to_json(unified_tsv) \
-                      FROM \
-                        search_pages \
-                      WHERE \
-                        to_tsquery('english', %s) @@ unified_tsv;"
-        '''
         sql_string = "SELECT \
                         res.id, \
                         res.origin_table, \
                         res.unified_tsv, \
                         res.occurence, \
+                        ts_rank_cd(array[0.1, 0.2, 0.4, 1.0], res.unified_tsv, to_tsquery('english', %s), 32) AS rank, \
                         pag.num_words \
                      FROM wiki_pages AS pag \
                      INNER JOIN \
                      (SELECT \
                         id, \
                         ARRAY_AGG(origin_table) AS origin_table, \
-                        tsvector_agg(unified_tsv) AS unified_tsv, \
-                        (select lexeme_count from lexeme_occurrences (tsvector_agg(unified_tsv), %s, 'english' )) AS occurence \
+                        tsvector_agg(all_tsv) AS unified_tsv, \
+                        (select lexeme_count from lexeme_occurrences (tsvector_agg(all_tsv), %s, 'english' )) AS occurence \
                       FROM \
-                        search_pages \
+                        search_pages, to_tsquery('english', %s) query \
                       WHERE \
-                        to_tsquery('english', %s) @@ unified_tsv \
+                        query @@ all_tsv \
                       GROUP BY \
                         id) \
                       AS res \
                         on pag.id = res.id;"
-        cur.execute(sql_string, (term, term))
+        cur.execute(sql_string, (term, term, term))
         res = cur.fetchall()
         print(res)
         for row in res:
@@ -353,6 +387,9 @@ def db_search_term(term):
             print("Database connection closed.")
 
 
+##
+#   deletes all table entries
+##
 def db_reset():
     conn = None
     try:
@@ -369,6 +406,9 @@ def db_reset():
             print("Database connection closed.")
 
 
+##
+#   deletes all tables and rules
+##
 def db_drop_all_tables():
     conn = None
     try:
