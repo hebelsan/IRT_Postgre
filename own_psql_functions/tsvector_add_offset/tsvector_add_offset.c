@@ -5,46 +5,46 @@
 #include "tsearch/ts_utils.h"
 
 #ifdef PG_MODULE_MAGIC
-PG_MODULE_MAGIC;
+    PG_MODULE_MAGIC;
 #endif
 
 
 
 
 /*
-  * Add positions from src to dest after offsetting them by maxpos.
-  * Return the number added (might be less than expected due to overflow)
-  */
- static int32
- add_pos(TSVector src, WordEntry *srcptr,
-         TSVector dest, WordEntry *destptr,
-         int32 maxpos)
- {
-     uint16     *clen = &_POSVECPTR(dest, destptr)->npos;
-     int         i;
-     uint16      slen = POSDATALEN(src, srcptr),
-                 startlen;
-     WordEntryPos *spos = POSDATAPTR(src, srcptr),
-                *dpos = POSDATAPTR(dest, destptr);
- 
-     if (!destptr->haspos)
-         *clen = 0;
- 
-     startlen = *clen;
-     for (i = 0;
-          i < slen && *clen < MAXNUMPOS &&
-          (*clen == 0 || WEP_GETPOS(dpos[*clen - 1]) != MAXENTRYPOS - 1);
-          i++)
-     {
-         WEP_SETWEIGHT(dpos[*clen], WEP_GETWEIGHT(spos[i]));
-         WEP_SETPOS(dpos[*clen], LIMITPOS(WEP_GETPOS(spos[i]) + maxpos));
-         (*clen)++;
-     }
- 
-     if (*clen != startlen)
-         destptr->haspos = 1;
-     return *clen - startlen;
- }
+* Add positions from src to dest after offsetting them by maxpos.
+* Return the number added (might be less than expected due to overflow)
+*/
+static int32
+add_pos(TSVector src, WordEntry *srcptr,
+TSVector dest, WordEntry *destptr,
+int32 maxpos)
+{
+    uint16          *clen = &_POSVECPTR(dest, destptr)->npos;
+    int             i;
+    uint16          slen = POSDATALEN(src, srcptr),
+                    startlen;
+    WordEntryPos    *spos = POSDATAPTR(src, srcptr),
+                    *dpos = POSDATAPTR(dest, destptr);
+
+    if (!destptr->haspos)
+        *clen = 0;
+
+    startlen = *clen;
+    for (i = 0;
+        i < slen && *clen < MAXNUMPOS &&
+        (*clen == 0 || WEP_GETPOS(dpos[*clen - 1]) != MAXENTRYPOS - 1);
+        i++)
+    {
+        WEP_SETWEIGHT(dpos[*clen], WEP_GETWEIGHT(spos[i]));
+        WEP_SETPOS(dpos[*clen], LIMITPOS(WEP_GETPOS(spos[i]) + maxpos));
+        (*clen)++;
+    }
+
+    if (*clen != startlen)
+    destptr->haspos = 1;
+    return *clen - startlen;
+}
 
 
 

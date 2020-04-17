@@ -20,9 +20,24 @@ And the implementation of my custom functions wasn't too difficult as it turned 
 - go into the directory containing the Makefile 
 - sudo make install
 - log in the database as superuser (sudo -u postgres psql mydb)
+
+**add offset function:**
+
 - Link the C Function to Postgres e.g.:
   CREATE FUNCTION tsvector_add_offset(tsvector, integer) RETURNS tsvector
       AS 'tsvector_add_offset', 'tsvector_add_offset'
       LANGUAGE C STRICT;
 - test function:
   select tsvector_add_offset(to_tsvector('english', 'hello jonn whats going on'), 5);
+
+**concat raw:**
+
+- CREATE FUNCTION tsvector_concat_raw(tsvector, tsvector) RETURNS tsvector
+      AS 'tsvector_concat_raw', 'tsvector_concat_raw'
+      LANGUAGE C STRICT;
+
+- test function:
+
+  select tsvector_concat_raw(setweight(to_tsvector('english', 'hello don jon whats going on'), 'A'), setweight(to_tsvector('english', 'second tsvector which should be concatenated'), 'B'));
+
+  select tsvector_concat_raw(setweight(to_tsvector('english', 'hello don jon whats going on'), 'A'), setweight(to_tsvector('english', 'hello don jon whats going on'), 'A'));
