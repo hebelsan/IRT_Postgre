@@ -94,7 +94,58 @@ def create_tables(conn, cur):
                     ON page_sections \
                     USING GIN (sec_title_tsv);")
     '''
-                    
+    
+    # create table for searching
+    cur.execute("CREATE TABLE search_pages ( \
+                    id integer NOT NULL, \
+                    all_tsv tsvector, \
+                    FOREIGN KEY (id) REFERENCES wiki_pages (id) ON DELETE CASCADE \
+                );")
+    # gin index on tsv
+    cur.execute("CREATE INDEX idx_all_tsv \
+                    ON search_pages \
+                    USING GIN (all_tsv);")
+    # Update triggers
+    cur.execute("CREATE OR REPLACE FUNCTION func_copy_page() RETURNS TRIGGER AS \
+                    $BODY$ \
+                    BEGIN \
+                        IF length( new.weighted_title_tsv) > 0 THEN \
+                            INSERT INTO \
+                                search_pages (id, all_tsv) \
+                                VALUES (new.id, new.weighted_title_tsv); \
+                        END IF; \
+                        RETURN new; \
+                    END; \
+                    $BODY$ \
+                    language plpgsql;")
+    cur.execute("CREATE TRIGGER trig_copy_page \
+                    AFTER INSERT ON wiki_pages \
+                    FOR EACH ROW \
+                    EXECUTE PROCEDURE func_copy_page();")
+    cur.execute("CREATE OR REPLACE FUNCTION func_copy_section() RETURNS TRIGGER AS \
+                    $BODY$ \
+                    BEGIN \
+                        IF length( new.sec_title_tsv) > 0 THEN \
+                            INSERT INTO \
+                                search_pages (id, all_tsv) \
+                                VALUES (new.page_id, new.sec_title_tsv); \
+                        END IF; \
+                        IF length( new.sec_text_tsv) > 0 THEN \
+                            INSERT INTO \
+                                search_pages (id, all_tsv) \
+                                VALUES (new.page_id, new.sec_text_tsv); \
+                        END IF; \
+                        RETURN new; \
+                    END; \
+                    $BODY$ \
+                    language plpgsql;")
+    cur.execute("CREATE TRIGGER trig_copy_section \
+                    AFTER INSERT ON page_sections \
+                    FOR EACH ROW \
+                    EXECUTE PROCEDURE func_copy_section();")
+    
+    
+    '''
     # create view
     sql_view_string = "CREATE VIEW search_pages AS \
                        SELECT \
@@ -112,6 +163,7 @@ def create_tables(conn, cur):
                        FROM \
                             page_sections;"
     cur.execute(sql_view_string)
+    '''
     
     # create function to aggregate ts_vectors
     aggregate_function_string = "CREATE AGGREGATE tsvector_agg (tsvector) ( \
@@ -360,6 +412,7 @@ def db_search_term(term):
         psycopg2.extensions.register_type(TSV)
         
         # get term frequency
+        '''
         sql_term_frequency = "SELECT ndoc, nentry \
                                 FROM ts_stat('SELECT \
                                                 res.all_tsv \
@@ -379,22 +432,18 @@ def db_search_term(term):
         pair = cur.fetchone()
         ndoc = pair[0] #  the number of documents (tsvectors) the word occurred in
         nentry = pair[1] # the total number of occurrences of the word.
-        
         print(pair)
+        '''
 
         sql_string = "SELECT \
                         res.id, \
-                        res.origin_table, \
-                        res.unified_tsv, \
                         res.rank / pag.num_words AS rank, \
                         pag.num_words \
                      FROM wiki_pages AS pag \
                      INNER JOIN \
                      (SELECT \
                         id, \
-                        ARRAY_AGG(origin_table) AS origin_table, \
-                        sum(ts_rank_cd(array[0.1, 0.2, 0.4, 1.0], all_tsv, to_tsquery('english', %s), 0)) AS rank, \
-                        tsvector_agg(all_tsv) AS unified_tsv \
+                        sum(ts_rank_cd(array[0.1, 0.2, 0.4, 1.0], all_tsv, to_tsquery('english', %s), 0)) AS rank \
                       FROM \
                         search_pages, to_tsquery('english', %s) query \
                       WHERE \
@@ -408,11 +457,9 @@ def db_search_term(term):
         #print(res)
         for row in res:
             page_id = row[0]
-            word_origins = row[1]  # origins could be 'page_title', 'sec_title' or 'sec_text'
-            ts_vectors = row[2]
-            rank = row[3]
+            rank = row[1]  # origins could be 'page_title', 'sec_title' or 'sec_text'
             print(rank)
-            page_word_count = row[4]
+            page_word_count = row[2]
         
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
@@ -458,6 +505,7 @@ def db_drop_all_tables():
         cur.execute("DROP FUNCTION lexeme_occurrences CASCADE;")
         cur.execute("DROP TABLE wiki_pages CASCADE;")
         cur.execute("DROP TABLE page_sections CASCADE;")
+        cur.execute("DROP TABLE search_pages CASCADE;")
         conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
