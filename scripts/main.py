@@ -26,7 +26,11 @@ if __name__ == '__main__':
         elif num == '4':
             category = input('wikipedia category: ')
             pages = input('number of pages: ')
-            db_insert_wiki(wiki_category=category, num_pages=int(pages))
+            batch_size = input('batch size: ')
+            if int(pages) % int(batch_size) != 0:
+                print('number of pages must be dividable by batch_size')
+                continue
+            db_insert_wiki(wiki_category=category, num_pages=int(pages), batch_size=int(batch_size))
         elif num == '5':
             db_reset()
         elif num == '6':

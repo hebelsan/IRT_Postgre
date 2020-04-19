@@ -25,6 +25,34 @@ Bei der Benutzung der Wikipedia bibliothek stellte sich heraus, dass manche seit
 
 ## Mögliche Probleme
 
+- Da ich nun die indexe des original textes beibehalte können diese sehr groß werden:
+  was ist der maximale Index eines tsvectors (getestet mit der Ketegorie 'sports' und 2000 seiten):
+  --> Position values in `tsvector` must be greater than 0 and no more than 16383 :/
+  The reason for the limits are in the [source code](http://doxygen.postgresql.org/ts__type_8h_source.html) as MAXSTRLEN (and MAXSTRPOS). Text search vectors are stored in one long, continuous array up to 1 MiB in length (total of all characters for all unique lexemes). To access these, the ts_vector index structure allows 11 bits for word length and 20 bits for its position in the array. These limits allow the index structure fit into a 32-bit unsigned int.
+
+  --> größters Dokument von 2000 Dokumenten hat 124169 Wörter in total, aber nur 8061 verschiedene lexeme (title: '2019 in sports')
+
+  --> Im Durchschnitt sind die Dokumente 8780 Wörter lang
+  --> Selbst wenn man nur die Lexeme zählt sind es maximal 19603 und im Durchschnitt  1478
+
+  **Fazit:**
+  Die Position eines ts_vectors kann ohne Weiteres praktisch nicht verwendet werden.
+  Der ts_vector kann höchstens ohne position value verwendet werden.
+  Wenn man jedoch die Position herausnimmt, werden auch die weights gelöscht.
+  Ohne Position und weights ist der ts_vector für die ts_rank Funktion nicht mehr wirklich zu gebrauchen.
+  Alles in allem scheint der ts_vector den Ansprüchen einer Information Retrievals Applikation nicht zu genügen.
+  Er kann aller höchsten ohne position und ohne Ranking verwendet werden um die Dokument id herauszufinden in denen das gesuchte Wort(Wörter) vorkommen.
+  Über eine zusätzliche Tabelle kann dann die Häufigkeit und Position der Wörter identifiziert werden.
+  Jedoch muss auch eine ganz eigene Ranking Funktion geschrieben werden.
+
+  **4 Mögliche weitere Vorgehen:**
+
+  1. Für jedes Dokument eine Tabelle mit allen Lexemen und Positionen (Könnte kombiniert werden mit fuzzy search von tsvector um Dokument ids herauszubekommen)
+  2. Eine Tabelle für alle Lexeme in welchen Dokumenten sie vorkommen und welchen Positionen
+  3. Die Positionen für jeden Abschnitt neu bei Index 1 neu starten lassen, dann für jeden Abschnitt ein Ranking berechnen und dann die nzes Dokument kombinieren.
+     Nachteil: Position der Wörter im ganzen Dokument wird vernachlässigt
+  4. Einen Offset für jeden Abschnitt Speichern und dann mit einer Custom Funktion die Positionen des gesuchten Wortes eines Dokumentes herausfiltern
+
 - Es könnte sein das das gesuchte Wort in jedem Abschnitt vorkommt und damit der erstellte ts-vector zu groß werden würde
 
 - Die Stelle eines Wortes ist immer nur innerhalb eines Abschnittes eines Textes, es wäre eventuell gut noch einen offset mit zu speichern
