@@ -9,6 +9,33 @@ from wiki_pipeline import WikiScratcher2
 
 
 ##
+#   Ranking functions
+#   # http://ra.ethz.ch/CDstore/www2002/refereed/643/node7.html
+##
+def rank(search_term, positions, num_words):
+    if "&" in search_term:
+        return calc_rank_and(positions) / num_words
+    if "|" in search_term:
+        return calc_rank_or(positions) / num_words
+    
+    ## single term -> just count appearance of word
+    word_count = positions[0]
+    return len(word_count) / num_words
+    
+
+def calc_rank_and(positions):
+    combinations = [(x,y) for x in positions[0] for y in positions[1]]
+    for 
+    return 0
+    
+def calc_rank_or(positions):
+    # a document containing most or all of the query terms should be ranked higher
+    # than a document containing fewer terms, regardless of the frequency of term occurrence
+    # --> document categories
+    return 0
+
+
+##
 #   helper function for db connection
 ##
 def get_connection():
@@ -373,8 +400,6 @@ def db_insert_wiki(wiki_category, num_pages, batch_size):
 # seaches the table for a specific term in title plus content and returns the id of the document
 ##
 def db_search_term(search_term):
-    search_lexems = search_term.split(" & ")
-    
     conn = None
     try:
         conn = get_connection()
@@ -398,9 +423,27 @@ def db_search_term(search_term):
                         on pag.id = res.id;"
         cur.execute(sql_string, (search_term,))
         res = cur.fetchall()
+        
+        search_lexemes = []
+        if "&" in search_term:
+            search_lexemes = search_term.split(" & ")
+        elif "|" in search_term:
+            search_lexemes = search_term.split(" | ")
+        else:
+            search_lexemes = [search_term]
+        
         for row in res:
+            num_words = row[1]
             page_title = row[2]
-            print(page_title)
+            positions = []
+            # get positions
+            for lexeme in search_lexemes:
+                cur.execute(sql.SQL("SELECT positions FROM {}")
+                .format(sql.Identifier(page_title)))
+                positions.append(cur.fetchone()[0])
+            ranking = rank(search_term, positions, num_words)
+            print("title: " + page_title + " rank: " + str(ranking))
+            
         print("num results: " + str(len(res)))
         
         cur.close()
