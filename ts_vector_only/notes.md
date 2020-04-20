@@ -1,6 +1,6 @@
 ## Notes
 
-Originally i wanted to use the python library `wikipedia`.
+Originally i wanted to use the python library `wikipedia`. 
 But this library is not able to search for pages of a certain category.
 Therefore i decided to use the library `pymediawiki` instead.
 `pymediawiki` is licensed under the MIT License.
