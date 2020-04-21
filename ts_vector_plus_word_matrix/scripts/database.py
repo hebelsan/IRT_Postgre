@@ -3,6 +3,7 @@ import psycopg2.extras
 from psycopg2.extras import Json
 from psycopg2 import sql
 from os import path
+from itertools import product
 
 from config import config
 from wiki_pipeline import WikiScratcher2
@@ -12,6 +13,22 @@ from wiki_pipeline import WikiScratcher2
 #   Ranking functions
 #   # http://ra.ethz.ch/CDstore/www2002/refereed/643/node7.html
 ##
+# (p', q') satisfying T such that p < p' < q' < q or p < p' < q' < q
+def check_CDR_rule(res):
+    for tup_a in res:
+        for tup_b in res:
+            if tup_a[0] == tup_b[0] and tup_a[1] != tup_b[1]:
+                if tup_a[1] < tup_b[1] and tup_b in res:
+                    res.remove(tup_b)
+                elif tup_a in res:
+                    res.remove(tup_a)
+            if tup_a[1] == tup_b[1] and tup_a[0] != tup_b[0]:
+                if tup_a[0] > tup_b[0] and tup_b in res:
+                    res.remove(tup_b)
+                elif tup_a in res:
+                    res.remove(tup_a)
+    return res
+
 def rank(search_term, positions, num_words):
     if "&" in search_term:
         return calc_rank_and(positions) / num_words
@@ -24,9 +41,27 @@ def rank(search_term, positions, num_words):
     
 
 def calc_rank_and(positions):
-    combinations = [(x,y) for x in positions[0] for y in positions[1]]
-    for 
-    return 0
+    res = []
+    LAMBDA = 16  # source says 16
+    rank = 0
+    
+    for comb in product(*positions):
+        comb = sorted(comb)
+        first = comb[0]
+        last = comb[len(positions)-1]
+        res.append((first, last))
+    # remove duplicates
+    res = set(res)
+    res = check_CDR_rule(list(res))
+    
+    for pos_pair in res:
+        tmp = pos_pair[1] - pos_pair[0] + 1
+        if tmp > LAMBDA:
+            rank += LAMBDA / tmp
+        else:
+            rank += 1
+    
+    return rank
     
 def calc_rank_or(positions):
     # a document containing most or all of the query terms should be ranked higher
@@ -424,13 +459,19 @@ def db_search_term(search_term):
         cur.execute(sql_string, (search_term,))
         res = cur.fetchall()
         
+        # get search_lexeme_string
+        cur.execute("select to_tsquery('english', %s)", (search_term,))
+        search_lexeme_string = cur.fetchone()[0]
+        # TODO in seperate function -> remove ''
+        search_lexeme_string = search_lexeme_string.replace("'", "")
+        print(search_lexeme_string)
         search_lexemes = []
-        if "&" in search_term:
-            search_lexemes = search_term.split(" & ")
-        elif "|" in search_term:
-            search_lexemes = search_term.split(" | ")
+        if "&" in search_lexeme_string:
+            search_lexemes = search_lexeme_string.split(" & ")
+        elif "|" in search_lexeme_string:
+            search_lexemes = search_lexeme_string.split(" | ")
         else:
-            search_lexemes = [search_term]
+            search_lexemes = [search_lexeme_string]
         
         for row in res:
             num_words = row[1]
@@ -438,10 +479,10 @@ def db_search_term(search_term):
             positions = []
             # get positions
             for lexeme in search_lexemes:
-                cur.execute(sql.SQL("SELECT positions FROM {}")
-                .format(sql.Identifier(page_title)))
+                cur.execute(sql.SQL("SELECT positions FROM {} WHERE lexeme = %s")
+                    .format(sql.Identifier(page_title)), [lexeme])
                 positions.append(cur.fetchone()[0])
-            ranking = rank(search_term, positions, num_words)
+            ranking = rank(search_lexeme_string, positions, num_words)
             print("title: " + page_title + " rank: " + str(ranking))
             
         print("num results: " + str(len(res)))
