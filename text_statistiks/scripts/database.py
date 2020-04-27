@@ -412,13 +412,13 @@ def db_show_stats():
         print("Max number of lexemes of a section: " + str(num_lexemes_max))
         
         ## TERM FREQUENCY
-        print("\nTop 10 TERM FREQUENCY:")
+        print("\nTop 20 TERM FREQUENCY:")
         sql_term_frequency = "SELECT word, nentry, ndoc \
                                 FROM ts_stat('SELECT \
                                                 all_tsv \
                                              FROM search_pages') \
                                 ORDER BY nentry DESC, ndoc DESC, word \
-                                LIMIT 10;"
+                                LIMIT 20;"
         cur.execute(sql_term_frequency)
         rows = cur.fetchall()
         for row in rows:
