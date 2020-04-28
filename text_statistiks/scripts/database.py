@@ -271,7 +271,7 @@ def db_insert_wiki(wiki_category, num_pages, batch_size):
                                     (page_title, num_sections, weighted_title_tsv) \
                                 VALUES \
                                     (%s, %s, setweight(to_tsvector('english', COALESCE(%s,'')), 'A')) \
-                                RETURNING id, tsvector_max_position(weighted_title_tsv);"
+                                RETURNING id, tsvector_num_lexemes(weighted_title_tsv);"
                 cur.execute(sql_string, (page_name, len(sec_titles), page_name))
                 tuple = cur.fetchall()[0]
                 id_new_row = tuple[0]
@@ -287,8 +287,8 @@ def db_insert_wiki(wiki_category, num_pages, batch_size):
                     sec_num_words_text = len(sec_text)
                     sec_num_words = sec_num_words_title + sec_num_words_text
                     ## lexem lexeme_count
-                    sql_string = "select tsvector_max_position(to_tsvector('english', COALESCE(%s,''))), \
-                                         tsvector_max_position(to_tsvector('english', COALESCE(%s,'')))"
+                    sql_string = "select tsvector_num_lexemes(to_tsvector('english', COALESCE(%s,''))), \
+                                         tsvector_num_lexemes(to_tsvector('english', COALESCE(%s,'')))"
                     cur.execute(sql_string, (sec_title, sec_text))
                     tuple = cur.fetchall()[0]
                     num_lex_title = tuple[0]
