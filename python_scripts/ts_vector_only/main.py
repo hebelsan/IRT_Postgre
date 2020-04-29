@@ -10,7 +10,6 @@ if __name__ == '__main__':
         print('4: insert wiki pages')
         print('5: empty tables')
         print('6: search term')
-        print('7: insert test data')
         print('8: drop all databases and functions')
         num = input('')
         if num == '0':
@@ -43,8 +42,6 @@ if __name__ == '__main__':
                 db_rank_page(term)
             elif num == '1':
                 db_rank_sec(term)
-        elif num == '7':
-            db_insert_testdata()
         elif num == '8':
             db_drop_all_tables()
         else:

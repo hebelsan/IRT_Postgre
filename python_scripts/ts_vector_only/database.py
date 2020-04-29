@@ -52,23 +52,10 @@ def create_tables(conn, cur):
                     id SERIAL PRIMARY KEY, \
                     page_title text UNIQUE NOT NULL, \
                     weighted_title_tsv tsvector, \
+                    num_words_title integer, \
                     num_sections smallint, \
                     num_words integer, \
                     num_lexems integer);")
-    '''
-    cur.execute("CREATE FUNCTION page_title_weighted_tsv_trigger() RETURNS trigger AS $$ \
-                    begin \
-                    new.weighted_title_tsv := \
-                    setweight(to_tsvector('english', COALESCE(new.page_title,'')), 'A'); \
-                    return new; \
-                    end \
-                    $$ LANGUAGE plpgsql;")
-    cur.execute("CREATE TRIGGER upd_page_title_tsvector BEFORE INSERT OR UPDATE \
-                    ON wiki_pages FOR EACH ROW EXECUTE PROCEDURE page_title_weighted_tsv_trigger();")
-    cur.execute("CREATE INDEX idx_page_title \
-                    ON wiki_pages \
-                    USING GIN (weighted_title_tsv);")
-    '''
                     
     # create table page sections: section title is weight as B and section text as C
     cur.execute("CREATE TABLE page_sections( \
@@ -77,31 +64,18 @@ def create_tables(conn, cur):
                     sec_title text, \
                     sec_title_tsv tsvector, \
                     sec_text_tsv tsvector, \
-                    num_words integer, \
+                    num_words_title integer, \
+                    num_words_text integer, \
                     FOREIGN KEY (page_id) REFERENCES wiki_pages (id) ON DELETE CASCADE);")
-    '''
-    cur.execute("CREATE FUNCTION sec_title_weighted_tsv_trigger() RETURNS trigger AS $$ \
-                    begin \
-                    new.sec_title_tsv := \
-                    setweight(to_tsvector('english', COALESCE(new.sec_title,'')), 'B'); \
-                    return new; \
-                    end \
-                    $$ LANGUAGE plpgsql;")
-    cur.execute("CREATE TRIGGER upd_sec_title_tsvector BEFORE INSERT OR UPDATE \
-                    ON page_sections FOR EACH ROW EXECUTE PROCEDURE sec_title_weighted_tsv_trigger();")
-    cur.execute("CREATE INDEX idx_sec_text \
-                    ON page_sections \
-                    USING GIN (sec_text_tsv);")
-    cur.execute("CREATE INDEX idx_sec_title \
-                    ON page_sections \
-                    USING GIN (sec_title_tsv);")
-    '''
     
     # create table for searching
     cur.execute("CREATE TABLE search_pages ( \
-                    id integer NOT NULL, \
+                    id BIGSERIAL PRIMARY KEY, \
+                    page_id integer NOT NULL, \
+                    sec_id integer NOT NULL, \
+                    num_words integer NOT NULL, \
                     all_tsv tsvector, \
-                    FOREIGN KEY (id) REFERENCES wiki_pages (id) ON DELETE CASCADE \
+                    FOREIGN KEY (page_id) REFERENCES wiki_pages (id) ON DELETE CASCADE \
                 );")
     # gin index on tsv
     cur.execute("CREATE INDEX idx_all_tsv \
@@ -113,8 +87,8 @@ def create_tables(conn, cur):
                     BEGIN \
                         IF length( new.weighted_title_tsv) > 0 THEN \
                             INSERT INTO \
-                                search_pages (id, all_tsv) \
-                                VALUES (new.id, new.weighted_title_tsv); \
+                                search_pages (page_id, sec_id, num_words, all_tsv) \
+                                VALUES (new.id, 0, new.num_words_title, new.weighted_title_tsv); \
                         END IF; \
                         RETURN new; \
                     END; \
@@ -129,13 +103,13 @@ def create_tables(conn, cur):
                     BEGIN \
                         IF length( new.sec_title_tsv) > 0 THEN \
                             INSERT INTO \
-                                search_pages (id, all_tsv) \
-                                VALUES (new.page_id, new.sec_title_tsv); \
+                                search_pages (page_id, sec_id, num_words, all_tsv) \
+                                VALUES (new.page_id, new.id, new.num_words_title, new.sec_title_tsv); \
                         END IF; \
                         IF length( new.sec_text_tsv) > 0 THEN \
                             INSERT INTO \
-                                search_pages (id, all_tsv) \
-                                VALUES (new.page_id, new.sec_text_tsv); \
+                                search_pages (page_id, sec_id, num_words, all_tsv) \
+                                VALUES (new.page_id, new.id, new.num_words_text, new.sec_text_tsv); \
                         END IF; \
                         RETURN new; \
                     END; \
@@ -145,27 +119,6 @@ def create_tables(conn, cur):
                     AFTER INSERT ON page_sections \
                     FOR EACH ROW \
                     EXECUTE PROCEDURE func_copy_section();")
-    
-    
-    '''
-    # create view
-    sql_view_string = "CREATE VIEW search_pages AS \
-                       SELECT \
-                            text 'page_title' AS origin_table, id AS id, weighted_title_tsv AS all_tsv \
-                       FROM \
-                            wiki_pages \
-                       UNION ALL \
-                       SELECT \
-                            text 'sec_text' AS origin_table, page_id AS id, sec_text_tsv AS s_text \
-                       FROM \
-                            page_sections \
-                       UNION ALL \
-                       SELECT \
-                            text 'sec_title' AS origin_table, page_id AS id, sec_title_tsv AS s_title \
-                       FROM \
-                            page_sections;"
-    cur.execute(sql_view_string)
-    '''
     
     # create function to aggregate ts_vectors
     aggregate_function_string = "CREATE AGGREGATE tsvector_agg (tsvector) ( \
@@ -296,17 +249,17 @@ def db_insert_wiki(wiki_category, num_pages, batch_size):
             for page_name, section_data in wiki_data.items():
                 ## Insert into the table wiki_pages
                 sec_titles = section_data.keys()
+                num_word_page_title = len(page_name)
+                num_words = num_word_page_title
                 sql_string = "INSERT INTO wiki_pages \
-                                    (page_title, num_sections, weighted_title_tsv) \
+                                    (page_title, num_sections, weighted_title_tsv, num_words_title) \
                                 VALUES \
-                                    (%s, %s, setweight(to_tsvector('english', COALESCE(%s,'')), 'A')) \
+                                    (%s, %s, setweight(to_tsvector('english', COALESCE(%s,'')), 'A'), %s) \
                                 RETURNING id, tsvector_num_lexemes(weighted_title_tsv);"
-                cur.execute(sql_string, (page_name, len(sec_titles), page_name))
+                cur.execute(sql_string, (page_name, len(sec_titles), page_name, num_word_page_title))
                 tuple = cur.fetchall()[0]
                 id_new_row = tuple[0]
                 num_lex_page_title = tuple[1]
-                num_word_page_title = len(page_name)
-                num_words = num_word_page_title
                 num_lex = num_lex_page_title
                 
                 ## Insert into the table page_sections
@@ -325,70 +278,20 @@ def db_insert_wiki(wiki_category, num_pages, batch_size):
                     num_lex += num_lex_title + num_lex_text
                     
                     sql_string = "INSERT INTO page_sections \
-                                        (page_id, sec_title, sec_title_tsv, sec_text_tsv, num_words) \
+                                        (page_id, sec_title, sec_title_tsv, \
+                                        sec_text_tsv, num_words_title, num_words_text) \
                                     VALUES \
                                         (%s, %s, \
                                         setweight(to_tsvector('english', COALESCE(%s,'')), 'B'), \
                                         setweight(to_tsvector('english', COALESCE(%s,'')), 'C'), \
-                                        %s);"
+                                        %s, %s);"
                     cur.execute(sql_string,
-                        (id_new_row, sec_title, sec_title, sec_text, sec_num_words))
+                        (id_new_row, sec_title, sec_title, sec_text, sec_num_words_title, sec_num_words_text))
                     num_words += sec_num_words
                 sql_string = "UPDATE wiki_pages SET num_words = %s, num_lexems = %s WHERE id = %s;"
                 cur.execute(sql_string, (num_words, num_lex, id_new_row))
             conn.commit()
             
-        cur.close()
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
-    finally:
-        if conn is not None:
-            conn.close()
-            print("Database connection closed.")
-
-
-##
-#   inserts some test data to play around with
-##
-def db_insert_testdata():
-    conn = None
-    try:
-        conn = get_connection()
-        cur = conn.cursor()
-        
-        # first page
-        sql_string = "INSERT INTO \
-                        wiki_pages (page_title, num_sections, num_words) \
-                      VALUES \
-                        ('first page test title', 2, 30) RETURNING id;"
-        cur.execute(sql_string)
-        id_of_new_row = cur.fetchone()[0]
-        sql_string = "INSERT INTO page_sections (page_id, sec_title, \
-                                                 sec_text_tsv, num_words) \
-                        VALUES (%s, 'first page first section title', \
-                            setweight(to_tsvector('english', COALESCE('hello from the first section', '')), 'C'), 10);"
-        cur.execute(sql_string, (id_of_new_row,))
-        sql_string = "INSERT INTO page_sections (page_id, sec_title, \
-                                                 sec_text_tsv, num_words) \
-                        VALUES (%s, 'first page second section title', \
-                            setweight(to_tsvector('english', COALESCE('this is just a test', '')), 'C'), 10);"
-        cur.execute(sql_string, (id_of_new_row,))
-        
-        # second page
-        sql_string = "INSERT INTO \
-                        wiki_pages (page_title, num_sections, num_words) \
-                      VALUES \
-                            ('second page test title about viruses', 1, 100) RETURNING id;"
-        cur.execute(sql_string)
-        id_of_new_row = cur.fetchone()[0]
-        sql_string = "INSERT INTO page_sections (page_id, sec_title, \
-                                                 sec_text_tsv, num_words) \
-                        VALUES (%s, 'viruses are bad', \
-                            setweight(to_tsvector('english', COALESCE('there are various different \
-                            types of viruses for example the virus named corona', '')), 'c'), 10);"
-        cur.execute(sql_string, (id_of_new_row,))
-        
-        conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
@@ -408,22 +311,22 @@ def db_rank_page(term):
         cur = conn.cursor()
         
         sql_string = "SELECT \
-                        res.id, \
+                        res.page_id, \
                         res.rank / pag.num_words AS rank, \
                         pag.num_words \
                      FROM wiki_pages AS pag \
                      INNER JOIN \
                      (SELECT \
-                        id, \
+                        page_id, \
                         sum(ts_rank_cd(array[0.1, 0.2, 0.4, 1.0], all_tsv, to_tsquery('english', %s), 0)) AS rank \
                       FROM \
                         search_pages, to_tsquery('english', %s) query \
                       WHERE \
                         query @@ all_tsv \
                       GROUP BY \
-                        id) \
+                        page_id) \
                       AS res \
-                        on pag.id = res.id \
+                        on pag.id = res.page_id \
                       ORDER BY rank DESC \
                       LIMIT 10;"
         cur.execute(sql_string, (term, term))
@@ -451,39 +354,25 @@ def db_rank_sec(term):
         conn = get_connection()
         cur = conn.cursor()
         
-        # add typecast for tsv
-        cur.execute("SELECT NULL::TSVECTOR")
-        tsv_oid = cur.description[0][1]
-        TSV = psycopg2.extensions.new_type((tsv_oid,), "TSVECTOR", cast_tsv)
-        psycopg2.extensions.register_type(TSV)
-        
         sql_string = "SELECT \
-                        res.id, \
-                        res.rank / pag.num_words AS rank, \
-                        pag.num_words \
-                     FROM wiki_pages AS pag \
-                     INNER JOIN \
-                     (SELECT \
-                        id, \
-                        sum(ts_rank_cd(array[0.1, 0.2, 0.4, 1.0], all_tsv, to_tsquery('english', %s), 0)) AS rank \
+                        page_id, \
+                        sec_id, \
+                        ts_rank_cd(array[0.1, 0.2, 0.4, 1.0], all_tsv, \
+                            to_tsquery('english', %s), 0) / num_words AS rank \
                       FROM \
                         search_pages, to_tsquery('english', %s) query \
                       WHERE \
                         query @@ all_tsv \
-                      GROUP BY \
-                        id) \
-                      AS res \
-                        on pag.id = res.id \
-                      ORDER BY rank DESC \
+                      ORDER BY rank DESC, page_id DESC, sec_id DESC \
                       LIMIT 10;"
         cur.execute(sql_string, (term, term))
         res = cur.fetchall()
-        print("top 10 ranking documents:")
+        print("top 10 ranking sections:")
         for row in res:
             page_id = row[0]
-            rank = row[1]
-            page_word_count = row[2]
-            print("page id: " + str(page_id) + " ranking: " + str(rank))
+            section_id = row[1]
+            rank = row[2]
+            print("page_id: " + str(page_id) + " section_id: " + str(section_id) + " ranking: " + str(rank))
         print("num results: " + str(len(res)))
         
         cur.close()
