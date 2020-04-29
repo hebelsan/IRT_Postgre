@@ -4,6 +4,8 @@ from psycopg2.extras import Json
 from os import path
 
 from config import config
+import sys
+sys.path.append("../wiki")
 from wiki_pipeline import WikiScratcher2
 
 

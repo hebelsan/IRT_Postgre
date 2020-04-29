@@ -10,7 +10,8 @@ if __name__ == '__main__':
         print('4: insert wiki pages')
         print('5: empty tables')
         print('6: search term')
-        print('7: drop all databases and functions')
+        print('7: insert test data')
+        print('8: drop all databases and functions')
         num = input('')
         if num == '0':
             exit()
@@ -35,8 +36,16 @@ if __name__ == '__main__':
         elif num == '6':
             print('term could be a single word or multiple connected with &(AND), |(OR), !(NOT), <N>(Followed by)')
             term = input('term: ')
-            db_search_term(term)
+            print('0: rank wiki page')
+            print('1: rank wiki sections')
+            num = input('')
+            if num == '0':
+                db_rank_page(term)
+            elif num == '1':
+                db_rank_sec(term)
         elif num == '7':
+            db_insert_testdata()
+        elif num == '8':
             db_drop_all_tables()
         else:
             print('please insert a valid input')

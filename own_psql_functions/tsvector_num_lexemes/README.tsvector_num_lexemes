@@ -1,0 +1,2 @@
+This is a PostgreSQL extension for tsvectors.
+The function tsvector_num_lexemes(tsvector) counts the total number of lexemes.

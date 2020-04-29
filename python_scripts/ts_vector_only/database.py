@@ -4,6 +4,8 @@ from psycopg2.extras import Json
 from os import path
 
 from config import config
+import sys
+sys.path.append("../wiki")
 from wiki_pipeline import WikiScratcher2
 
 
@@ -399,42 +401,12 @@ def db_insert_testdata():
 ##
 # seaches the table for a specific term in title plus content and returns the id of the document
 ##
-def db_search_term(term):
+def db_rank_page(term):
     conn = None
     try:
         conn = get_connection()
         cur = conn.cursor()
         
-        # add typecast for tsv
-        cur.execute("SELECT NULL::TSVECTOR")
-        tsv_oid = cur.description[0][1]
-        TSV = psycopg2.extensions.new_type((tsv_oid,), "TSVECTOR", cast_tsv)
-        psycopg2.extensions.register_type(TSV)
-        
-        # get term frequency
-        '''
-        sql_term_frequency = "SELECT ndoc, nentry \
-                                FROM ts_stat('SELECT \
-                                                res.all_tsv \
-                                             FROM wiki_pages AS pag \
-                                             INNER JOIN \
-                                             (SELECT \
-                                                id, \
-                                                tsvector_agg(all_tsv) AS all_tsv \
-                                              FROM \
-                                                search_pages \
-                                              GROUP BY \
-                                                id) \
-                                              AS res \
-                                                on pag.id = res.id') \
-                                WHERE word = %s;"
-        cur.execute(sql_term_frequency, (term,))
-        pair = cur.fetchone()
-        ndoc = pair[0] #  the number of documents (tsvectors) the word occurred in
-        nentry = pair[1] # the total number of occurrences of the word.
-        print(pair)
-        '''
-
         sql_string = "SELECT \
                         res.id, \
                         res.rank / pag.num_words AS rank, \
@@ -451,16 +423,68 @@ def db_search_term(term):
                       GROUP BY \
                         id) \
                       AS res \
-                        on pag.id = res.id;"
+                        on pag.id = res.id \
+                      ORDER BY rank DESC \
+                      LIMIT 10;"
         cur.execute(sql_string, (term, term))
         res = cur.fetchall()
-        #print(res)
+        print("top 10 ranking documents:")
         for row in res:
             page_id = row[0]
-            rank = row[1]  # origins could be 'page_title', 'sec_title' or 'sec_text'
-            #print(rank)
+            rank = row[1]
             page_word_count = row[2]
-        print("nunm results: " + str(len(res)))
+            print("page id: " + str(page_id) + " ranking: " + str(rank))
+        print("num results: " + str(len(res)))
+        
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+            print("Database connection closed.")
+
+
+def db_rank_sec(term):
+    conn = None
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        
+        # add typecast for tsv
+        cur.execute("SELECT NULL::TSVECTOR")
+        tsv_oid = cur.description[0][1]
+        TSV = psycopg2.extensions.new_type((tsv_oid,), "TSVECTOR", cast_tsv)
+        psycopg2.extensions.register_type(TSV)
+        
+        sql_string = "SELECT \
+                        res.id, \
+                        res.rank / pag.num_words AS rank, \
+                        pag.num_words \
+                     FROM wiki_pages AS pag \
+                     INNER JOIN \
+                     (SELECT \
+                        id, \
+                        sum(ts_rank_cd(array[0.1, 0.2, 0.4, 1.0], all_tsv, to_tsquery('english', %s), 0)) AS rank \
+                      FROM \
+                        search_pages, to_tsquery('english', %s) query \
+                      WHERE \
+                        query @@ all_tsv \
+                      GROUP BY \
+                        id) \
+                      AS res \
+                        on pag.id = res.id \
+                      ORDER BY rank DESC \
+                      LIMIT 10;"
+        cur.execute(sql_string, (term, term))
+        res = cur.fetchall()
+        print("top 10 ranking documents:")
+        for row in res:
+            page_id = row[0]
+            rank = row[1]
+            page_word_count = row[2]
+            print("page id: " + str(page_id) + " ranking: " + str(rank))
+        print("num results: " + str(len(res)))
         
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:

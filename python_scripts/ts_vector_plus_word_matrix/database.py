@@ -6,6 +6,8 @@ from os import path
 from itertools import product
 
 from config import config
+import sys
+sys.path.append("../wiki")
 from wiki_pipeline import WikiScratcher2
 
 

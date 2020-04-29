@@ -1,4 +1,4 @@
-comment = 'returns the number of lexemes'
-'default_version = '0.0.1'
+comment = 'returns the total number of lexemes in a tsvector'
+default_version = '1.0'
 relocatable = true
 module_pathname = '$libdir/tsvector_num_lexemes'

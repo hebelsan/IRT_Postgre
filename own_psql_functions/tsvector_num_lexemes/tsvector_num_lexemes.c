@@ -1,13 +1,10 @@
 #include "postgres.h"
-#include <string.h>
 #include "fmgr.h"
-#include "utils/geo_decls.h"
 #include "tsearch/ts_utils.h"
 
 #ifdef PG_MODULE_MAGIC
     PG_MODULE_MAGIC;
 #endif
-
 
 
 PG_FUNCTION_INFO_V1(tsvector_num_lexemes);
@@ -20,8 +17,7 @@ tsvector_num_lexemes(PG_FUNCTION_ARGS)
     WordEntryPos *p;
     int32         count = 0, i, j;
     
-    
-    /* Get max position in in1; we'll need this to offset in2's positions */
+    /* count the number of positions */
      ptr = ARRPTR(in);
      i = in->size;
      while (i--)

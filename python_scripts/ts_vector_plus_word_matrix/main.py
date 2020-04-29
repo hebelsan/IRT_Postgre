@@ -10,8 +10,7 @@ if __name__ == '__main__':
         print('4: insert wiki pages')
         print('5: empty tables')
         print('6: search term')
-        print('7: insert test data')
-        print('8: drop all databases and functions')
+        print('7: drop all databases and functions')
         num = input('')
         if num == '0':
             exit()
@@ -38,18 +37,6 @@ if __name__ == '__main__':
             term = input('term: ')
             db_search_term(term)
         elif num == '7':
-            db_insert_testdata()
-        elif num == '8':
             db_drop_all_tables()
         else:
             print('please insert a valid input')
-    
-    
-    '''
-    wiki = WikiScratcher(category='viruses')
-    dic = wiki.get_sections(num_pages=15)
-    for dics in dic.values():
-        for secname in dics.keys():
-            print(secname)
-        print()
-    '''
