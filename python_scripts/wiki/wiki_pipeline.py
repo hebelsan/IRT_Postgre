@@ -62,12 +62,18 @@ class WikiScratcher2:
         self.max_pages = max_pages
         self.num_pages = 0
         self.pages = []
+        self.done_cats = set()
+        self.might_done_cats = []
         self.result_dic = {}
+        self.cat = 0
     
-    def __print_categorymembers(self, categorymembers, level=0):
-        for c in categorymembers.values():
-            if c.ns == wikipediaapi.Namespace.CATEGORY and level < self.max_level and self.num_pages < self.max_pages:
-                self.__print_categorymembers(c.categorymembers, level=level + 1)
+    def __print_categorymembers(self, category, level=0):
+        for name, c in category.categorymembers.items():
+            if c.ns == wikipediaapi.Namespace.CATEGORY and level < self.max_level \
+            and self.num_pages < self.max_pages and name not in self.done_cats:
+                if level == 0 and name not in self.might_done_cats:
+                    self.might_done_cats.append(name)
+                self.__print_categorymembers(c, level=level + 1)
             elif c.ns == 0 and self.num_pages < self.max_pages: # could also try “main namespace” or “mainspace” instead of ns == 0 becuase main namespace also includes ns=12,112
                 page_py = self.wikipedia.page(c.title)
                 if (page_py.exists() and c.title not in self.pages):
@@ -76,6 +82,8 @@ class WikiScratcher2:
                     self.result_dic[c.title] = {}
                     self.result_dic[c.title]['summary'] = page_py.summary
                     self.__print_sections(page_py.sections, c.title, 0)
+            else:
+                continue
     
     def __print_sections(self, sections, p_title, level=0):
         for s in sections:
@@ -88,8 +96,13 @@ class WikiScratcher2:
         self.result_dic = {}
         self.num_pages = 0
         self.max_pages = num_pages
-        cat = self.wikipedia.page("Category:" + self.category)
-        self.__print_categorymembers(cat.categorymembers)
+        if len(self.pages) == 0:
+            cat = self.wikipedia.page("Category:" + self.category)
+            self.cat = cat
+        self.__print_categorymembers(self.cat)
+        while (len(self.might_done_cats) > 1):
+            self.done_cats.add(self.might_done_cats.pop(0))
+        print(self.done_cats)
         return self.result_dic
 
 
