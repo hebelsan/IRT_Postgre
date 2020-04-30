@@ -8,6 +8,9 @@ import sys
 sys.path.append("../wiki")
 from wiki_pipeline import WikiScratcher2
 
+# for statistics
+import json
+
 
 ##
 #   helper function for db connection
@@ -50,31 +53,31 @@ def create_tables(conn, cur):
     # create table wiki_pages: page title is weight as A
     cur.execute("CREATE TABLE wiki_pages( \
                     id SERIAL PRIMARY KEY, \
-                    page_title text UNIQUE NOT NULL, \
-                    weighted_title_tsv tsvector, \
-                    num_words_title integer, \
-                    num_sections smallint, \
-                    num_words integer, \
-                    num_lexems integer);")
+                    page_title TEXT UNIQUE NOT NULL, \
+                    weighted_title_tsv TSVECTOR, \
+                    num_words_title INTEGER, \
+                    num_sections SMALLINT, \
+                    num_words INTEGER, \
+                    num_lexems INTEGER);")
                     
     # create table page sections: section title is weight as B and section text as C
     cur.execute("CREATE TABLE page_sections( \
                     id BIGSERIAL PRIMARY KEY, \
+                    sec_id INTEGER NOT NULL, \
                     page_id INTEGER NOT NULL, \
-                    sec_title text, \
-                    sec_title_tsv tsvector, \
-                    sec_text_tsv tsvector, \
-                    num_words_title integer, \
-                    num_words_text integer, \
+                    type TEXT, \
+                    tsv TSVECTOR, \
+                    num_words INTEGER, \
+                    num_lexemes INTEGER, \
                     FOREIGN KEY (page_id) REFERENCES wiki_pages (id) ON DELETE CASCADE);")
     
     # create table for searching
     cur.execute("CREATE TABLE search_pages ( \
                     id BIGSERIAL PRIMARY KEY, \
-                    page_id integer NOT NULL, \
-                    sec_id integer NOT NULL, \
-                    num_words integer NOT NULL, \
-                    all_tsv tsvector, \
+                    page_id INTEGER NOT NULL, \
+                    sec_id INTEGER NOT NULL, \
+                    num_words INTEGER NOT NULL, \
+                    all_tsv TSVECTOR, \
                     FOREIGN KEY (page_id) REFERENCES wiki_pages (id) ON DELETE CASCADE \
                 );")
     # gin index on tsv
@@ -101,15 +104,10 @@ def create_tables(conn, cur):
     cur.execute("CREATE OR REPLACE FUNCTION func_copy_section() RETURNS TRIGGER AS \
                     $BODY$ \
                     BEGIN \
-                        IF length( new.sec_title_tsv) > 0 THEN \
+                        IF length( new.tsv) > 0 THEN \
                             INSERT INTO \
                                 search_pages (page_id, sec_id, num_words, all_tsv) \
-                                VALUES (new.page_id, new.id, new.num_words_title, new.sec_title_tsv); \
-                        END IF; \
-                        IF length( new.sec_text_tsv) > 0 THEN \
-                            INSERT INTO \
-                                search_pages (page_id, sec_id, num_words, all_tsv) \
-                                VALUES (new.page_id, new.id, new.num_words_text, new.sec_text_tsv); \
+                                VALUES (new.page_id, new.sec_id, new.num_words, new.tsv); \
                         END IF; \
                         RETURN new; \
                     END; \
@@ -263,6 +261,7 @@ def db_insert_wiki(wiki_category, num_pages, batch_size):
                 num_lex = num_lex_page_title
                 
                 ## Insert into the table page_sections
+                sec_id = 1
                 for sec_title, sec_text in section_data.items():
                     ## word count
                     sec_num_words_title = len(sec_title)
@@ -278,16 +277,24 @@ def db_insert_wiki(wiki_category, num_pages, batch_size):
                     num_lex += num_lex_title + num_lex_text
                     
                     sql_string = "INSERT INTO page_sections \
-                                        (page_id, sec_title, sec_title_tsv, \
-                                        sec_text_tsv, num_words_title, num_words_text) \
+                                        (sec_id, page_id, type, tsv, num_words, num_lexemes) \
                                     VALUES \
-                                        (%s, %s, \
+                                        (%s, %s, %s, \
                                         setweight(to_tsvector('english', COALESCE(%s,'')), 'B'), \
-                                        setweight(to_tsvector('english', COALESCE(%s,'')), 'C'), \
                                         %s, %s);"
                     cur.execute(sql_string,
-                        (id_new_row, sec_title, sec_title, sec_text, sec_num_words_title, sec_num_words_text))
+                        (sec_id, id_new_row, "title", sec_title, sec_num_words_title, num_lex_title))
+                    
+                    sql_string = "INSERT INTO page_sections \
+                                        (sec_id, page_id, type, tsv, num_words, num_lexemes) \
+                                    VALUES \
+                                        (%s, %s, %s, \
+                                        setweight(to_tsvector('english', COALESCE(%s,'')), 'B'), \
+                                        %s, %s);"
+                    cur.execute(sql_string,
+                        (sec_id+1, id_new_row, "text", sec_text, sec_num_words_text, num_lex_text))
                     num_words += sec_num_words
+                    sec_id += 2
                 sql_string = "UPDATE wiki_pages SET num_words = %s, num_lexems = %s WHERE id = %s;"
                 cur.execute(sql_string, (num_words, num_lex, id_new_row))
             conn.commit()
@@ -311,7 +318,7 @@ def db_rank_page(term):
         cur = conn.cursor()
         
         sql_string = "SELECT \
-                        res.page_id, \
+                        pag.id, \
                         res.rank / pag.num_words AS rank, \
                         pag.num_words \
                      FROM wiki_pages AS pag \
@@ -327,17 +334,25 @@ def db_rank_page(term):
                         page_id) \
                       AS res \
                         on pag.id = res.page_id \
-                      ORDER BY rank DESC \
-                      LIMIT 10;"
+                      ORDER BY pag.id DESC;"
         cur.execute(sql_string, (term, term))
         res = cur.fetchall()
+        #for comparing
+        data = {}
+        data['pages'] = []
         print("top 10 ranking documents:")
         for row in res:
             page_id = row[0]
             rank = row[1]
             page_word_count = row[2]
-            print("page id: " + str(page_id) + " ranking: " + str(rank))
+            data['pages'].append({
+                'page_id': page_id,
+                'rank': rank
+            })
+            #print("page id: " + str(page_id) + " ranking: " + str(rank))
         print("num results: " + str(len(res)))
+        with open("../../rating_comparison/data/page_" + term + ".txt", "w") as outfile:
+            json.dump(data, outfile)
         
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
@@ -357,23 +372,32 @@ def db_rank_sec(term):
         sql_string = "SELECT \
                         page_id, \
                         sec_id, \
-                        ts_rank_cd(array[0.1, 0.2, 0.4, 1.0], all_tsv, \
-                            to_tsquery('english', %s), 0) / num_words AS rank \
+                        (ts_rank_cd(array[0.1, 0.2, 0.4, 1.0], all_tsv, \
+                            to_tsquery('english', %s), 0) / num_words) AS rank \
                       FROM \
                         search_pages, to_tsquery('english', %s) query \
                       WHERE \
                         query @@ all_tsv \
-                      ORDER BY rank DESC, page_id DESC, sec_id DESC \
-                      LIMIT 10;"
+                      ORDER BY page_id ASC, sec_id ASC;"
         cur.execute(sql_string, (term, term))
         res = cur.fetchall()
+        #for comparing
+        data = {}
+        data['sections'] = []
         print("top 10 ranking sections:")
         for row in res:
             page_id = row[0]
             section_id = row[1]
             rank = row[2]
-            print("page_id: " + str(page_id) + " section_id: " + str(section_id) + " ranking: " + str(rank))
+            data['sections'].append({
+                'page_id': page_id,
+                'section_id': section_id,
+                'rank': rank
+            })
+            #print("page_id: " + str(page_id) + " section_id: " + str(section_id) + " ranking: " + str(rank))
         print("num results: " + str(len(res)))
+        with open("../../rating_comparison/data/section_" + term + ".txt", "w") as outfile:
+            json.dump(data, outfile)
         
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
