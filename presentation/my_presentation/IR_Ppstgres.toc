@@ -2,9 +2,9 @@
 \beamer@subsectionintoc {1}{1}{Introduction}{4}{0}{1}
 \beamer@sectionintoc {2}{Approach and realizations}{5}{0}{2}
 \beamer@subsectionintoc {2}{1}{Approach and realizations}{6}{0}{2}
-\beamer@sectionintoc {3}{Custom C-functions in PostgreSQL}{8}{0}{3}
-\beamer@subsectionintoc {3}{1}{Custom C-functions in PostgreSQL}{9}{0}{3}
-\beamer@sectionintoc {4}{Rating sections vs. rating pages}{10}{0}{4}
-\beamer@subsectionintoc {4}{1}{Rating sections vs. rating pages}{11}{0}{4}
-\beamer@sectionintoc {5}{Conclusion}{16}{0}{5}
-\beamer@subsectionintoc {5}{1}{Conclusion}{17}{0}{5}
+\beamer@sectionintoc {3}{Custom C-functions in PostgreSQL}{9}{0}{3}
+\beamer@subsectionintoc {3}{1}{Custom C-functions in PostgreSQL}{10}{0}{3}
+\beamer@sectionintoc {4}{Rating sections vs. rating pages}{12}{0}{4}
+\beamer@subsectionintoc {4}{1}{Rating sections vs. rating pages}{13}{0}{4}
+\beamer@sectionintoc {5}{Conclusion}{18}{0}{5}
+\beamer@subsectionintoc {5}{1}{Conclusion}{19}{0}{5}
