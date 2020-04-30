@@ -111,14 +111,55 @@ Database Systems Research Group\\
 			\item Used package psycopg2 version 2.8.5
 			\item custom converter for tsvector
 		\end{itemize}
-	\end{block}
-	
-	
+	\end{block}	
 } % END OF FRAME
 
 \frame{
-\frametitle{Database models}
+\frametitle{3 database model approaches}
 
+\begin{columns}[t]
+	\begin{column}{.33\textwidth}
+		{\color{unirot}tsvector}
+		\begin{block}{}
+			\centering
+			\begin{itemize}
+				\item all done with tsvector
+				\item full text search with tsvector
+				\item rating of tsvector
+				\item weighting of tsvector
+				\item tokenization and lemmatization
+				\item tsquery
+			\end{itemize}
+		\end{block}	
+	\end{column}
+	
+	\begin{column}{.33\textwidth}
+		{\color{unirot}Mix} 
+		\begin{itemize}
+			\item raw tsvecot + word-matrix for each doc
+			\item needs a lot of memory
+			\item customizable
+		\end{itemize}
+	\end{column}
+
+	\begin{column}{.33\textwidth}
+		{\color{unirot}word-matrix} 
+		\begin{itemize}
+			\item one big word-matrix
+			\item probably slow
+		\end{itemize}
+	\end{column}
+\end{columns}
+\vfill
+
+} % END OF FRAME
+
+\frame{
+\frametitle{Database model}
+
+\begin{figure}
+	\includegraphics[width=1.\textwidth]{db_scheme} 
+\end{figure}
 
 } % END OF FRAME
 
@@ -267,7 +308,7 @@ Database Systems Research Group\\
 	\frametitle{Query:"game", sorted by sum of section rankings}
 	
 	\begin{figure}
-		\includegraphics[width=.8\textwidth]{2000_only_sec_sorted_by_sum} 
+		\includegraphics[width=1.\textwidth]{2000_only_sec_sorted_by_sum} 
 	\end{figure}
 }
 
@@ -275,7 +316,7 @@ Database Systems Research Group\\
 	\frametitle{Query:"game", adding the rank for the whole page}
 	
 	\begin{figure}
-		\includegraphics[width=.8\textwidth]{2000_together_sroted_by_sum} 
+		\includegraphics[width=1.\textwidth]{2000_together_sroted_by_sum} 
 	\end{figure}
 }
 
@@ -283,7 +324,7 @@ Database Systems Research Group\\
 	\frametitle{Query:"game", ordered by max section rating}
 	
 	\begin{figure}
-		\includegraphics[width=.8\textwidth]{ordered_by_rmax_together} 
+		\includegraphics[width=1.\textwidth]{ordered_by_rmax_together} 
 	\end{figure}
 }
 
@@ -291,11 +332,46 @@ Database Systems Research Group\\
 	\frametitle{Query:"game AND team AND ball", ordered by max section rating}
 	
 	\begin{figure}
-		\includegraphics[width=.8\textwidth]{tripel_ordered_by_rmax_together} 
+		\includegraphics[width=1.\textwidth]{tripel_ordered_by_rmax_together} 
 	\end{figure}
 }
 
-
+\frame{
+	\frametitle{distance between ratings}
+	
+	\begin{block}{\centering Calculating Distance}
+		\begin{itemize}
+			\item To calculate the difference between pageranking and sectionranking
+			\item Distance first of max section rank to first of max page rank, distance of second max section ranking to second of max page rank and so on...
+		\end{itemize}
+	\end{block}
+	
+	\begin{columns}[t]
+		\begin{column}{.5\textwidth}
+			{\color{unirot}Query "game"}
+			\begin{itemize}
+				\item result pages: 1176
+				\item Top 10 - 289.5 avg(dist) 
+				\item Top 20 - 250.9 avg(dist) 
+				\item Top 30 - 183.2 avg(dist) 
+				\item Top 40 - 155.5 avg(dist) 
+			\end{itemize}
+		\end{column}
+		
+		
+		\begin{column}{.5\textwidth}
+			{\color{unirot}Query "game \& team \& ball"} 
+			\begin{itemize}
+				\item result pages: 274
+				\item Top 10 - 36.0 avg(dist)
+				\item Top 20 - 40.6 avg(dist)
+				\item Top 30 - 36.6 avg(dist)
+				\item Top 40 - 34.0 avg(dist)
+			\end{itemize}
+		\end{column}
+	\end{columns}
+	
+}
 
 %========================================
 %========================================
@@ -311,6 +387,7 @@ Database Systems Research Group\\
 			\item Ratings for sections and page return total different results
 			\item Tsvector has a lot of potential
 			\item PostgreSQL is easy customizable
+			\item TODO comparing performance and ranking to solr  
 		\end{itemize}
 	\end{block}
 
