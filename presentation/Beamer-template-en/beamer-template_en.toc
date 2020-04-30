@@ -1,0 +1,11 @@
+\beamer@sectionintoc {1}{Page Structure}{3}{0}{1}
+\beamer@subsectionintoc {1}{1}{Enumerations}{4}{0}{1}
+\beamer@subsectionintoc {1}{2}{Rows}{7}{0}{1}
+\beamer@subsectionintoc {1}{3}{Blocks}{9}{0}{1}
+\beamer@sectionintoc {2}{Transitions between Slides}{10}{0}{2}
+\beamer@subsectionintoc {2}{1}{Simpel pause and the like}{11}{0}{2}
+\beamer@subsectionintoc {2}{2}{Overlays}{22}{0}{2}
+\beamer@sectionintoc {3}{Accentuations}{30}{0}{3}
+\beamer@subsectionintoc {3}{1}{Accentuations}{31}{0}{3}
+\beamer@sectionintoc {4}{More Information}{38}{0}{4}
+\beamer@subsectionintoc {4}{1}{More Information}{39}{0}{4}

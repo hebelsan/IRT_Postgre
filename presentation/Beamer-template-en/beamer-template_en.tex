@@ -1,0 +1,441 @@
+% Updated by Michael Gertz, April 2017
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{beamer}
+%\usepackage[ngerman]{babel}
+\usepackage[utf8]{inputenc}
+
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{fancybox}
+
+\usepackage{beamerthemesplit}
+\usetheme[compress]{Heidelberg}
+\definecolor{unirot}{rgb}{0.5976525,0,0}
+\usecolortheme[named=unirot]{structure}
+
+
+\title[Title to appear in footer]{Title of the Presentation}
+\subtitle{Subtitle}
+\author[Name to appear in footer]{Full Name}
+\date{\today}
+\institute[Uni HD]{
+Heidelberg University\\
+Institute of Computer Science\\
+Database Systems Research Group\\
+(\ldots or whatever your institution/affiliation is \ldots)\\
+\color{unirot}{Email address}}
+
+%---------------------------------------%
+%---------- RECURRING OUTLINE ----------%
+% have this if you'd like a recurring outline
+\AtBeginSection[]  % "Beamer, do the following at the start of every section"
+{
+\begin{frame}<beamer> 
+\frametitle{Outline} % make a frame titled "Outline"
+\tableofcontents[currentsection,hideallsubsections]  % show TOC and highlight current section
+\end{frame}
+}
+%----------------------------------------
+
+
+\begin{document}
+\frame[plain]{\titlepage}
+\frame{\frametitle{Outline}\tableofcontents[hideallsubsections]}
+
+%========================================
+%========================================
+
+\section[Structure]{Page Structure}
+
+\subsection{Enumerations}
+
+
+\frame{
+\frametitle{Enumerations}
+
+\begin{itemize}
+\item Item
+\begin{itemize}
+  \item Subitem 1
+  \item Subitem 2
+  \item Subitem 3
+\end{itemize}
+\item Another main item
+\item And yet another one
+\begin{itemize}
+  \item \ldots with subitem
+\end{itemize}
+\end{itemize}
+} % END OF FRAME
+
+%----------------------------------------
+
+\frame{
+\frametitle{Enumerations / 2}
+
+\begin{itemize}
+\item Item
+\medskip
+\begin{itemize}
+  \item Subitem 1
+  \medskip
+  \item Subitem 2
+  \medskip
+  \item Subitem 3
+\end{itemize}
+\bigskip
+\item And another item
+\bigskip
+\item And yet another one
+\medskip
+\begin{itemize}
+  \item again with subitem
+\end{itemize}
+\end{itemize}
+} % END OF FRAME
+
+%----------------------------------------
+
+\frame[t]{
+\frametitle{Enumerations / 3}
+
+\begin{itemize}
+\item Main item with 3 subitems
+\begin{itemize}
+  \item[(a)] Subitem 1
+  \item[(b)] Subitem 2
+  \item[(c)] Subitem 3
+\end{itemize}
+\item And another item
+\item And yet another one
+\begin{itemize}
+  \item \ldots again with subitem 
+\end{itemize}
+\end{itemize}
+} % END OF FRAME
+
+%========================================
+
+\subsection{Rows}
+
+
+\frame{
+\frametitle{Rows}
+
+\begin{columns}[t]
+\begin{column}{.5\textwidth}
+{\color{unirot}Advantages}
+\begin{itemize}
+  \item There are many
+  \item and more
+  \item and even more
+  \item and a last advantage
+\end{itemize}
+\end{column}
+
+
+\begin{column}{.5\textwidth}
+{\color{unirot}Disadvantages} 
+\begin{itemize}
+  \item There is only one 
+  \item or two
+\end{itemize}
+\end{column}
+
+\end{columns}
+\vfill
+} % END OF FRAME
+
+%----------------------------------------
+
+\frame{
+\frametitle{Rows / 2}
+
+\begin{columns}[b]
+\begin{column}{.5\textwidth}
+{\color{unirot}Advantages}
+\begin{itemize}
+   \item There are many
+  \item and more
+  \item and even more
+  \item and a last advantage
+\end{itemize}
+\end{column}
+
+
+\begin{column}{.5\textwidth}
+{\color{unirot}Disadvantages} 
+\begin{itemize}
+  \item There is only one 
+  \item or two
+\end{itemize}
+\end{column}
+
+\end{columns}
+\vfill
+} % END OF FRAME
+
+%========================================
+
+\subsection{Blocks}
+
+
+\frame{
+\frametitle{Blocks}
+
+\begin{block}{\centering Definition of x}
+x is an important parameter for any type of text.
+\end{block}
+
+\medskip
+\begin{block}{\centering Steps}
+\begin{itemize}
+  \item[(1)] Practice
+  \item[(2)] Practice
+  \item[(3)] Practice
+\end{itemize}
+\end{block}
+
+\medskip
+\begin{block}{}
+\centering
+
+A block does not require a title.
+\end{block}
+
+} % END OF FRAME
+
+
+
+%========================================
+%========================================
+
+\section[Transitions]{Transitions  between Slides}
+
+\subsection{Simpel pause and the like}
+
+
+\frame{
+\frametitle{Enumerations}
+
+\begin{itemize}
+\item Main item
+\begin{itemize}
+  \item Subitem 1
+  \item Subitem 2
+  \item Subitem 3
+\end{itemize}
+\pause
+
+\item Another main item
+\pause
+
+\item And yet another one
+\begin{itemize}
+  \item again with subitem
+  \pause
+  \item and a second subitem
+\end{itemize}
+\end{itemize}
+} % END OF FRAME
+
+%----------------------------------------
+
+\frame{
+\frametitle{Enumerations / 2}
+
+\begin{itemize}
+\item Main item
+\begin{itemize}
+  \item<1> Subitem 1
+  \item<2-3> Subitem 2
+  \item<3-> Subitem 3
+\end{itemize}
+\item<4> Another main item
+\item<4-> And yet another one
+\begin{itemize}
+  \item<6-> again with subitem
+  \item<7> and a second subitem
+\end{itemize}
+\end{itemize}
+} % END OF FRAME
+
+%========================================
+
+\subsection{Overlays}
+
+\frame{
+\frametitle{Overlay of Images}
+\vspace*{-2ex}
+
+\begin{overprint}
+\onslide<1>
+\begin{figure}
+\includegraphics[width=\textwidth]{humboldt_wiki-blank.png} 
+\caption{AvH in Wikipedia, \textit{Source: URL}}
+\end{figure}
+
+\onslide<2>
+\begin{figure}
+\includegraphics[width=\textwidth]{humboldt_wiki-locations.png} 
+\caption{AvH in Wikipedia, \textit{Source: URL}}
+\end{figure}
+
+\onslide<3>
+\begin{figure}
+\includegraphics[width=\textwidth]{humboldt_wiki-locations-dates.png} 
+\caption{AvH in Wikipedia, \textit{Source: URL}}
+\end{figure}
+
+\onslide<4>
+\begin{figure}
+\includegraphics[width=\textwidth]{humboldt_wiki-locations-dates.png} 
+\caption{AvH in Wikipedia, \textit{Source: URL}}
+\end{figure}
+\vspace*{-5cm}
+\begin{block}{An the essence is \ldots}
+\textbf{There were many events in the life of AvH.}
+\end{block}
+
+\end{overprint}
+
+} % END OF FRAME
+
+%----------------------------------------
+
+
+
+\frame{\frametitle{Overlaying Details}
+\vspace*{-1ex}
+\begin{itemize}
+\item What are the issues?
+\begin{overprint}
+\onslide<1>
+  \begin{itemize}
+  \item Issue 1
+  \item Issue 2
+  \item Issue 3
+  \end{itemize}
+\onslide<2>
+  \begin{itemize}
+  \item Issue 1 \\
+\vspace*{-3ex}  
+  \begin{center}
+\includegraphics[width=.3\textwidth]{questions}
+\end{center}
+  \item Issue 2
+  \item Issue 3
+  \end{itemize}
+\onslide<3>
+  \begin{itemize}
+  \item Issue 1
+  \item Issue 2 \\
+  \begin{center}
+  \includegraphics[width=.3\textwidth]{questions}
+  \end{center}
+  \item Issue 3
+  \end{itemize}
+\onslide<4>
+  \begin{itemize}
+  \item Issue 1
+  \item Issue 2
+  \item Issue 3 \\
+  \begin{center}
+  \includegraphics[width=.3\textwidth]{questions}
+  \end{center}
+  \end{itemize}
+\end{overprint}
+\end{itemize}
+} % END OF FRAME
+
+
+
+%========================================
+%========================================
+
+\section{Accentuations}
+
+\subsection{Accentuations}
+
+%----------------------------------------
+
+\def\hilite<#1>{%
+  \temporal<#1>{\color{black}}{\color{unirot}}%
+               {\color{gray}}}
+               
+%----------------------------------------
+
+\frame{
+\frametitle{Accentuating Parts of Text }
+
+\textbf{Source:} Beamer v3.0 Guide
+\bigskip
+
+\begin{Large}
+\begin{tabular}{|p{3.5cm}|}
+\hline
+\texttt{{\hilite<4>A}( Id,{ \hilite<2>X}, {\hilite<3>Y})} \\
+\texttt{B( Id, {\hilite<2>X}, {\hilite<3>Y})} \\ 
+\hline
+\end{tabular}
+\end{Large} 
+
+} % END OF FRAME
+
+%----------------------------------------
+
+\frame{
+\frametitle{Accentuating Parts of Text / 2}
+
+\textbf{Source:} Beamer v3.0 Guide
+
+\bigskip
+\begin{itemize}
+\item<1-2> \alert<1>{This is important}
+\item \alert<2-3>{Now this is important}
+\item \alert<3>{Now both are important}
+\item This is never important
+\end{itemize}
+
+} % END OF FRAME
+
+
+%========================================
+%========================================
+
+\section[More]{More Information}
+
+\subsection{More Information}
+
+\frame{
+\frametitle{Useful Beamer Tutorials}
+
+\begin{itemize}
+\item The Beamer class -- CTAN\\
+\url{http://ctan.math.utah.edu/ctan/tex-archive/macros/latex/contrib/beamer/doc/beameruserguide.pdf}
+\item ``A Beamer Tutorial in Beamer'' von Charles T. Batts \\
+\url{https://www.uncg.edu/cmp/reu/presentations/Charles\%20Batts\%20-\%20Beamer\%20Tutorial.pdf}
+%\texttt{http://www.uncg.edu/cmp/reu/presentations/Charles \\ \%20Batts\%20-\%20Beamer\%20Tutorial.pdf}
+\medskip
+\item The Beamer class for \LaTeX\\
+\url{http://www.mathematik.uni-leipzig.de/~hellmund/LaTeX/beamer2.pdf}
+\medskip
+\item Beamer Theme Matrix \\
+\texttt{http://www.hartwork.org/beamer-theme-matrix/}
+\end{itemize}
+
+}
+
+%----------------------------------------
+
+\frame{\frametitle{Questions}
+\begin{figure}
+\includegraphics[width=.8\textwidth]{questions} 
+\end{figure}
+\vspace*{-3.3cm}\begin{center}\begin{LARGE}\textbf{Questions}\end{LARGE}\end{center}
+
+\vspace*{2cm}
+}
+
+\end{document}

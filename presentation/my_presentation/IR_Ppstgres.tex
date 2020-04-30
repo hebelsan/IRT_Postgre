@@ -1,0 +1,207 @@
+% Updated by Michael Gertz, April 2017
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{beamer}
+%\usepackage[ngerman]{babel}
+\usepackage[utf8]{inputenc}
+
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{fancybox}
+
+\usepackage{forest}
+\usepackage{listings}
+
+\usepackage{beamerthemesplit}
+\usetheme[compress]{Heidelberg}
+\definecolor{unirot}{rgb}{0.5976525,0,0}
+\usecolortheme[named=unirot]{structure}
+
+
+\title[IR with PostgreSQL]{Information Retrievel with PostgreSQL}
+\author[Alexander Hebel]{Alexander Hebel}
+\date{Mai 6, 2020}
+\institute[Uni HD]{
+Heidelberg University\\
+Institute of Computer Science\\
+Database Systems Research Group\\
+\color{unirot}{vx228@uni-heidelberg.de}}
+
+%---------------------------------------%
+%---------- RECURRING OUTLINE ----------%
+% have this if you'd like a recurring outline
+\AtBeginSection[]  % "Beamer, do the following at the start of every section"
+{
+\begin{frame}<beamer> 
+\frametitle{Outline} % make a frame titled "Outline"
+\tableofcontents[currentsection,hideallsubsections]  % show TOC and highlight current section
+\end{frame}
+}
+%----------------------------------------
+
+
+\begin{document}
+\frame[plain]{\titlepage}
+\frame{\frametitle{Outline}\tableofcontents[hideallsubsections]}
+
+%========================================
+%========================================
+
+\section[Introduction]{Introduction}
+
+\subsection{Introduction}
+
+
+\frame{
+\frametitle{Task definition}
+
+\begin{itemize}
+\item How looks and performs an IRS made of a relational database
+\item similar to Apache Solr
+\item finding different database models
+\item Python api for the database creation and communication
+\item Crawl Wikipages to gather some text data
+\item special type in PostgreSQL named tsvector (full text search)
+\end{itemize}
+
+\begin{block}{\centering First goal}
+	support some boolean search querys like AND
+\end{block}
+} % END OF FRAME
+
+
+%========================================
+%========================================
+
+\section[Realization]{Approach and realizations}
+
+\subsection{Approach and realizations}
+
+
+\frame{
+\frametitle{Database models}
+
+
+} % END OF FRAME
+
+
+%========================================
+%========================================
+
+\section[Custom C-functions]{Custom C-functions in PostgreSQL}
+
+\subsection{Custom C-functions in PostgreSQL}
+
+%----------------------------------------
+
+\def\hilite<#1>{%
+  \temporal<#1>{\color{black}}{\color{unirot}}%
+               {\color{gray}}}
+               
+%----------------------------------------
+
+\frame{
+\frametitle{Adding your custom C-functions to PostgreSQL}
+
+\begin{columns}[t]
+	\begin{column}{.5\textwidth}
+		{\color{unirot}Prerequisites}
+		\begin{itemize}
+			\item Developer version of PostgreSQL
+			\item Installation of make
+			\item Root privilege on database
+		\end{itemize}
+	\end{column}
+	
+	
+	\begin{column}{.5\textwidth}
+		{\color{unirot}Folder structure} 
+		\begin{forest}
+			for tree={
+				font=\ttfamily,
+				grow'=0,
+				child anchor=west,
+				parent anchor=south,
+				anchor=west,
+				calign=first,
+				edge path={
+					\noexpand\path [draw, \forestoption{edge}]
+					(!u.south west) +(7.5pt,0) |- node[fill,inner sep=1.25pt] {} (.child anchor)\forestoption{edge label};
+				},
+				before typesetting nodes={
+					if n=1
+					{insert before={[,phantom]}}
+					{}
+				},
+				fit=band,
+				before computing xy={l=15pt},
+			}
+			[Extension
+			[function.c]
+			[Makefile]
+			[function.control]
+			[function--1.0.sql]
+			[README.function]
+			]
+		\end{forest}
+	\end{column}
+\end{columns}
+\vfill
+\begin{block}{\centering Steps}
+	\begin{itemize}
+		\item[(1)] make install
+		\item[(2)] CREATE EXTENSION "extension"
+	\end{itemize}
+\end{block}
+} % END OF FRAME
+
+
+%========================================
+%========================================
+
+\section[Rating comparison]{Rating sections vs. rating pages}
+
+\subsection{Rating sections vs. rating pages}
+
+\frame{
+\frametitle{Idea}
+
+\begin{itemize}
+\item The Beamer class -- CTAN\\
+\url{http://ctan.math.utah.edu/ctan/tex-archive/macros/latex/contrib/beamer/doc/beameruserguide.pdf}
+\item ``A Beamer Tutorial in Beamer'' von Charles T. Batts \\
+\url{https://www.uncg.edu/cmp/reu/presentations/Charles\%20Batts\%20-\%20Beamer\%20Tutorial.pdf}
+%\texttt{http://www.uncg.edu/cmp/reu/presentations/Charles \\ \%20Batts\%20-\%20Beamer\%20Tutorial.pdf}
+\medskip
+\item The Beamer class for \LaTeX\\
+\url{http://www.mathematik.uni-leipzig.de/~hellmund/LaTeX/beamer2.pdf}
+\medskip
+\item Beamer Theme Matrix \\
+\texttt{http://www.hartwork.org/beamer-theme-matrix/}
+\end{itemize}
+
+}
+
+%========================================
+%========================================
+
+\section[Conclusion]{Conclusion}
+
+\subsection{Conclusion}
+
+\frame{
+	\frametitle{Conclusion and future work}
+	
+	
+}
+
+
+\frame{\frametitle{Questions}
+	%\begin{figure}
+	%\includegraphics[width=.8\textwidth]{questions} 
+	%\end{figure}
+	\vspace*{2.3cm}\begin{center}\begin{LARGE}\textbf{Questions}\end{LARGE}\end{center}
+	\vspace*{2cm}
+}
+
+\end{document}
