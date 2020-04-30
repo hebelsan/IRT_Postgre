@@ -57,15 +57,15 @@ Database Systems Research Group\\
 
 \begin{itemize}
 \item How looks and performs an IRS made of a relational database
-\item similar to Apache Solr
-\item finding different database models
+\item Similar to Apache Solr
+\item Finding different database models
 \item Python api for the database creation and communication
 \item Crawl Wikipages to gather some text data
-\item special type in PostgreSQL named tsvector (full text search)
+\item Special type in PostgreSQL named tsvector (full text search)
 \end{itemize}
 
 \begin{block}{\centering First goal}
-	support some boolean search querys like AND
+	Support some boolean search querys like AND
 \end{block}
 } % END OF FRAME
 
@@ -82,6 +82,41 @@ Database Systems Research Group\\
 \frametitle{Database models}
 
 
+} % END OF FRAME
+
+\frame{
+	\frametitle{Tsvector}
+	
+	\begin{columns}[t]
+		\begin{column}{.5\textwidth}
+			{\color{unirot}Possibilities}
+			\begin{itemize}
+				\item Full text search
+				\item GIN-Index
+				\item Automatic tokenization and lemmatization
+				\item Adding weights
+				\item Predefined rating function
+			\end{itemize}
+		\end{column}
+		
+		
+		\begin{column}{.5\textwidth}
+			{\color{unirot}Limitations} 
+			\begin{itemize}
+				\item The number of lexemes must be less than 2\^64 
+				\item Max position value: 16383
+				\item No more than 256 positions per lexeme
+				\item Relative small set of manipulation methods
+				\item Limited rating
+			\end{itemize}
+		\end{column}
+	\end{columns}
+
+	\begin{block}{\centering Example}
+		\centering
+		\{'a':1,6,10 'and':8 'cat':3 'fat':2,11 'mat':7 'on':5 'rat':12 'sat':4\}
+	\end{block}
+	
 } % END OF FRAME
 
 
@@ -156,6 +191,13 @@ Database Systems Research Group\\
 } % END OF FRAME
 
 
+\frame{
+	\frametitle{Example}
+	
+	
+	
+}
+
 %========================================
 %========================================
 
@@ -167,20 +209,54 @@ Database Systems Research Group\\
 \frametitle{Idea}
 
 \begin{itemize}
-\item The Beamer class -- CTAN\\
-\url{http://ctan.math.utah.edu/ctan/tex-archive/macros/latex/contrib/beamer/doc/beameruserguide.pdf}
-\item ``A Beamer Tutorial in Beamer'' von Charles T. Batts \\
-\url{https://www.uncg.edu/cmp/reu/presentations/Charles\%20Batts\%20-\%20Beamer\%20Tutorial.pdf}
-%\texttt{http://www.uncg.edu/cmp/reu/presentations/Charles \\ \%20Batts\%20-\%20Beamer\%20Tutorial.pdf}
-\medskip
-\item The Beamer class for \LaTeX\\
-\url{http://www.mathematik.uni-leipzig.de/~hellmund/LaTeX/beamer2.pdf}
-\medskip
-\item Beamer Theme Matrix \\
-\texttt{http://www.hartwork.org/beamer-theme-matrix/}
+	\item Originates from a misunderstanding
+	\item Thought the task is to rank whole wiki pages
+	\item User wants the best section and not the "best" document
+	\item So how is the relationship between page and section ranking
 \end{itemize}
 
+\begin{block}{\centering Calculation of Rating}
+	\begin{itemize}
+		\item \textbf{section}: rating / num\_words\_of\_section
+		\item \textbf{page}: sum\_of\_ratings / num\_words\_of\_page
+	\end{itemize}
+\end{block}
+
 }
+
+\frame{
+	\frametitle{Query:"game", sorted by sum of section rankings}
+	
+	\begin{figure}
+		\includegraphics[width=.8\textwidth]{2000_only_sec_sorted_by_sum} 
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Query:"game", adding the rank for the whole page}
+	
+	\begin{figure}
+		\includegraphics[width=.8\textwidth]{2000_together_sroted_by_sum} 
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Query:"game", ordered by max section rating}
+	
+	\begin{figure}
+		\includegraphics[width=.8\textwidth]{ordered_by_rmax_together} 
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Query:"game AND team AND ball", ordered by max section rating}
+	
+	\begin{figure}
+		\includegraphics[width=.8\textwidth]{tripel_ordered_by_rmax_together} 
+	\end{figure}
+}
+
+
 
 %========================================
 %========================================
@@ -191,8 +267,20 @@ Database Systems Research Group\\
 
 \frame{
 	\frametitle{Conclusion and future work}
-	
-	
+	\begin{block}{\centering Conclusion}
+		\begin{itemize}
+			\item Ratings for sections and page return total different results
+			\item Tsvector has a lot of potential
+			\item PostgreSQL is easy customizable
+		\end{itemize}
+	\end{block}
+
+	\begin{block}{\centering Future work}
+		\begin{itemize}
+			\item Improve the rating algorithm with tf idf information (ts\_stat)
+			\item Tests on big datasets
+		\end{itemize}
+	\end{block}	
 }
 
 

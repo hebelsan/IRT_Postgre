@@ -20,37 +20,47 @@
 \headcommand {\beamer@subsectionentry {0}{2}{1}{6}{Approach and realizations}}
 \headcommand {\slideentry {2}{1}{1}{6/6}{Approach and realizations}{0}}
 \headcommand {\beamer@framepages {6}{6}}
-\headcommand {\beamer@sectionpages {5}{6}}
-\headcommand {\beamer@subsectionpages {6}{6}}
-\headcommand {\sectionentry {3}{Custom C-functions}{7}{Custom C-functions}{0}}
-\headcommand {\slideentry {3}{0}{1}{7/7}{}{0}}
+\headcommand {\slideentry {2}{1}{2}{7/7}{Approach and realizations}{0}}
 \headcommand {\beamer@framepages {7}{7}}
-\headcommand {\beamer@subsectionpages {7}{7}}
-\headcommand {\beamer@subsectionentry {0}{3}{1}{8}{Custom C-functions in PostgreSQL}}
-\headcommand {\slideentry {3}{1}{1}{8/8}{Custom C-functions in PostgreSQL}{0}}
+\headcommand {\beamer@sectionpages {5}{7}}
+\headcommand {\beamer@subsectionpages {6}{7}}
+\headcommand {\sectionentry {3}{Custom C-functions}{8}{Custom C-functions}{0}}
+\headcommand {\slideentry {3}{0}{1}{8/8}{}{0}}
 \headcommand {\beamer@framepages {8}{8}}
-\headcommand {\beamer@sectionpages {7}{8}}
 \headcommand {\beamer@subsectionpages {8}{8}}
-\headcommand {\sectionentry {4}{Rating comparison}{9}{Rating comparison}{0}}
-\headcommand {\slideentry {4}{0}{1}{9/9}{}{0}}
+\headcommand {\beamer@subsectionentry {0}{3}{1}{9}{Custom C-functions in PostgreSQL}}
+\headcommand {\slideentry {3}{1}{1}{9/9}{Custom C-functions in PostgreSQL}{0}}
 \headcommand {\beamer@framepages {9}{9}}
+\headcommand {\beamer@sectionpages {8}{9}}
 \headcommand {\beamer@subsectionpages {9}{9}}
-\headcommand {\beamer@subsectionentry {0}{4}{1}{10}{Rating sections vs. rating pages}}
-\headcommand {\slideentry {4}{1}{1}{10/10}{Rating sections vs. rating pages}{0}}
+\headcommand {\sectionentry {4}{Rating comparison}{10}{Rating comparison}{0}}
+\headcommand {\slideentry {4}{0}{1}{10/10}{}{0}}
 \headcommand {\beamer@framepages {10}{10}}
-\headcommand {\beamer@sectionpages {9}{10}}
 \headcommand {\beamer@subsectionpages {10}{10}}
-\headcommand {\sectionentry {5}{Conclusion}{11}{Conclusion}{0}}
-\headcommand {\slideentry {5}{0}{1}{11/11}{}{0}}
+\headcommand {\beamer@subsectionentry {0}{4}{1}{11}{Rating sections vs. rating pages}}
+\headcommand {\slideentry {4}{1}{1}{11/11}{Rating sections vs. rating pages}{0}}
 \headcommand {\beamer@framepages {11}{11}}
-\headcommand {\beamer@subsectionpages {11}{11}}
-\headcommand {\beamer@subsectionentry {0}{5}{1}{12}{Conclusion}}
-\headcommand {\slideentry {5}{1}{1}{12/12}{Conclusion}{0}}
+\headcommand {\slideentry {4}{1}{2}{12/12}{Rating sections vs. rating pages}{0}}
 \headcommand {\beamer@framepages {12}{12}}
-\headcommand {\slideentry {5}{1}{2}{13/13}{Conclusion}{0}}
+\headcommand {\slideentry {4}{1}{3}{13/13}{Rating sections vs. rating pages}{0}}
 \headcommand {\beamer@framepages {13}{13}}
-\headcommand {\beamer@partpages {1}{13}}
-\headcommand {\beamer@subsectionpages {12}{13}}
-\headcommand {\beamer@sectionpages {11}{13}}
-\headcommand {\beamer@documentpages {13}}
-\headcommand {\gdef \inserttotalframenumber {13}}
+\headcommand {\slideentry {4}{1}{4}{14/14}{Rating sections vs. rating pages}{0}}
+\headcommand {\beamer@framepages {14}{14}}
+\headcommand {\slideentry {4}{1}{5}{15/15}{Rating sections vs. rating pages}{0}}
+\headcommand {\beamer@framepages {15}{15}}
+\headcommand {\beamer@sectionpages {10}{15}}
+\headcommand {\beamer@subsectionpages {11}{15}}
+\headcommand {\sectionentry {5}{Conclusion}{16}{Conclusion}{0}}
+\headcommand {\slideentry {5}{0}{1}{16/16}{}{0}}
+\headcommand {\beamer@framepages {16}{16}}
+\headcommand {\beamer@subsectionpages {16}{16}}
+\headcommand {\beamer@subsectionentry {0}{5}{1}{17}{Conclusion}}
+\headcommand {\slideentry {5}{1}{1}{17/17}{Conclusion}{0}}
+\headcommand {\beamer@framepages {17}{17}}
+\headcommand {\slideentry {5}{1}{2}{18/18}{Conclusion}{0}}
+\headcommand {\beamer@framepages {18}{18}}
+\headcommand {\beamer@partpages {1}{18}}
+\headcommand {\beamer@subsectionpages {17}{18}}
+\headcommand {\beamer@sectionpages {16}{18}}
+\headcommand {\beamer@documentpages {18}}
+\headcommand {\gdef \inserttotalframenumber {18}}
