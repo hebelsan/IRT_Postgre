@@ -68,29 +68,65 @@ Database Systems Research Group\\
 
 
 \frame{
-\frametitle{Task definition}
+\frametitle{Information Retrieval System (IRS)}
 
-\begin{itemize}
-\item How looks and performs an IRS made of a relational database
-\item Similar to Apache Solr
-\item Finding different database models
-\item Python api for the database creation and communication
-\item Crawl Wikipages to gather some text data
-\item Special type in PostgreSQL named tsvector (full text search)
-\end{itemize}
-
-\begin{block}{\centering First goal}
-	Support some boolean search querys like AND
+\begin{block}{\centering Information Retrieval (IR)}
+	\begin{itemize}
+		\item Information retrieval is the science of searching for information in a document		
+		\item An IR system is a software system that provides access to books, journals and other documents; stores and manages those documents. 
+		\item Web search engines are the most visible IR applications.
+	\end{itemize}
 \end{block}
+
+\begin{block}{\centering Full-Text-Search}
+	The activity of searching through a collection of natural-language documents to locate those that best match a query
+\end{block}
+
+}
+
+	
+\frame{	
+\frametitle{Objectives}
+
+	\begin{itemize}
+		\item How does an IRS look made of a relational database
+		\item Finding different database models
+		\item Python api for the database creation and communication
+		\item Crawl Wikipages to gather text data
+	\end{itemize}
+
+	\begin{block}{\centering}
+		Support search querys with the boolean operator AND
+	\end{block}
 } % END OF FRAME
 
 
+\frame{	
+	\frametitle{Tsvector and Tsquery}
+	
+	\begin{itemize}
+		\item PostgreSQL provides \textbf{two} data types that are designed to support full text search
+		\item The \textbf{tsvector} type represents a document in a form optimized for text search
+		\item The \textbf{tsquery} type similarly represents a text query
+	\end{itemize}
+
+	\begin{block}{\centering Example Tsvector}
+		SELECT to\_tsvector('english', 'The Fat Rats');\\
+		\{'fat':2 'rat':3\}
+	\end{block}
+
+	\begin{block}{\centering Example Tsquery}
+		SELECT to\_tsquery('Fat:ab \& Cats');\\
+		\{'fat':AB \& 'cat'\}
+	\end{block}
+} % END OF FRAME
+
 %========================================
 %========================================
 
-\section[Realization]{Approach and realizations}
+\section[Realization]{Approach and Realizations}
 
-\subsection{Approach and realizations}
+\subsection{Approach and Realizations}
 
 \frame{
 	\frametitle{Realization}
@@ -109,23 +145,71 @@ Database Systems Research Group\\
 		\centering
 		\begin{itemize}
 			\item Used package psycopg2 version 2.8.5
-			\item custom converter for tsvector
+			\item Custom converter for tsvector
 		\end{itemize}
 	\end{block}	
 } % END OF FRAME
 
+\frame{	
+	\frametitle{Text Data Statistics}
+	
+	\begin{block}{\centering Wikipedia Category "Sports"}
+		\centering
+		\begin{itemize}
+			\item Number of Wiki pages: 2000
+			\item Number of sections (captions also count as section): 45756
+			\item Total number of words: 17587832
+			\item Total number of lexemes: 1969427
+		\end{itemize}
+	\end{block}
+
+	\begin{block}{}
+		\begin{itemize}
+			\item Max number of words of a page: 124136
+			\item Max number of lexemes of a page: 17787
+		\end{itemize}
+	\end{block}
+
+	\begin{block}{}
+		\begin{itemize}
+			\item Max number of words of a section: 24163
+			\item Max number of lexemes of a section: 2785
+			\item Average number of words per section: 734.7
+		\end{itemize}
+	\end{block}
+} % END OF FRAME
+
+\frame{	
+	\frametitle{Text Data Statistics 2}
+	
+	\begin{block}{\centering Top 10 Frequent Terms}
+		\begin{itemize}
+		\item[(1)] "game" \qquad \qquad TF: 14044 \quad DocF: 5370
+		\item[(2)] "world" \qquad \qquad TF: 13568 \quad DocF: 6144
+		\item[(3)] "championship" $\>$ TF: 12106 \quad DocF: 5475
+		\item[(4)] "team" \qquad \quad $\>$ $\>$ TF: 11955 \quad DocF: 4362
+		\item[(5)] "sport" \qquad \quad $\>$ $\>$ TF: 10658 \quad DocF: 5014
+		\item[(6)] "1" \qquad \quad \qquad $\>$ TF: 10237 \quad DocF: 4029
+		\item[(7)] "first" \qquad \qquad $\>$ TF: 10199 \quad DocF: 5073
+		\item[(8)] "player" \qquad $\>$ $\>$ $\>$ TF: 9577 $\>$ \quad DocF: 3243
+		\item[(9)] "2" \qquad \qquad \quad $\>$ TF: 9090 $\>$ \quad DocF: 3821
+		\item[(10)] "play" \quad $\>$ $\>$ $\>$ $\>$ $\>$ $\>$ TF: 9082 $\>$ \quad DocF: 3827
+	\end{itemize}
+	TF = term frequency \qquad DocF = document frequency
+	\end{block}
+}
+
 \frame{
-\frametitle{3 database model approaches}
+\frametitle{Three Database Model Approaches}
 
 \begin{columns}[t]
 	\begin{column}{.33\textwidth}
-		{\color{unirot}tsvector}
+		{\color{unirot}Tsvector}
 		\begin{block}{}
 			\centering
 			\begin{itemize}
-				\item all done with tsvector
 				\item full text search with tsvector
-				\item rating of tsvector
+				\item ranking function of tsvector
 				\item weighting of tsvector
 				\item tokenization and lemmatization
 				\item tsquery
@@ -136,14 +220,14 @@ Database Systems Research Group\\
 	\begin{column}{.33\textwidth}
 		{\color{unirot}Mix} 
 		\begin{itemize}
-			\item raw tsvecot + word-matrix for each doc
+			\item raw tsvector + word-matrix for each doc
 			\item needs a lot of memory
 			\item customizable
 		\end{itemize}
 	\end{column}
 
 	\begin{column}{.33\textwidth}
-		{\color{unirot}word-matrix} 
+		{\color{unirot}Word-matrix} 
 		\begin{itemize}
 			\item one big word-matrix
 			\item probably slow
@@ -151,7 +235,6 @@ Database Systems Research Group\\
 	\end{column}
 \end{columns}
 \vfill
-
 } % END OF FRAME
 
 \frame{
@@ -174,37 +257,30 @@ Database Systems Research Group\\
 				\item GIN-Index
 				\item Automatic tokenization and lemmatization
 				\item Adding weights
-				\item Predefined rating function
+				\item Predefined ranking function
 			\end{itemize}
-		\end{column}
-		
+		\end{column}	
 		
 		\begin{column}{.5\textwidth}
 			{\color{unirot}Limitations} 
 			\begin{itemize}
-				\item The number of lexemes must be less than 2\^64 
+				\item The number of lexemes must be less than $2^{64}$ 
 				\item Max position value: 16383
 				\item No more than 256 positions per lexeme
 				\item Relative small set of manipulation methods
-				\item Limited rating
+				\item Ranking function must be customized
 			\end{itemize}
 		\end{column}
-	\end{columns}
-
-	\begin{block}{\centering Example}
-		\centering
-		\{'a':1,6,10 'and':8 'cat':3 'fat':2,11 'mat':7 'on':5 'rat':12 'sat':4\}
-	\end{block}
-	
+	\end{columns}	
 } % END OF FRAME
 
 
 %========================================
 %========================================
 
-\section[Custom C-functions]{Custom C-functions in PostgreSQL}
+\section[Customize Tsvectors]{Adding Functionality to Tsvectors}
 
-\subsection{Custom C-functions in PostgreSQL}
+\subsection{Adding Functionality to Tsvectors}
 
 %----------------------------------------
 
@@ -214,8 +290,34 @@ Database Systems Research Group\\
                
 %----------------------------------------
 
+
 \frame{
-\frametitle{Adding your custom C-functions to PostgreSQL}
+	\frametitle{Reason to Extend PostgreSQL}
+	
+	\begin{block}{}
+		\centering
+		Only a few manipulation methods for tsvectors exist
+	\end{block}
+
+	For example it is not possible to:
+	
+	\begin{itemize}
+		\item[-] count number of \textbf{all} lexemes in a tsvector
+		\item[-] create a tsvector with an offset for the position index
+		\item[-] get the max index of a tsvector
+		\item[-] concatenate two tsvecotrs without changing the position values
+	\end{itemize}
+
+	\begin{block}{\centering Solution}
+		\centering
+		Write your own function either in plpgsql language or in C 
+	\end{block}
+	
+}
+
+
+\frame{
+\frametitle{Custom C-Functions in PostgreSQL}
 
 \begin{columns}[t]
 	\begin{column}{.5\textwidth}
@@ -269,43 +371,33 @@ Database Systems Research Group\\
 \end{block}
 } % END OF FRAME
 
-
-\frame{
-	\frametitle{Example}
-	
-	\lstset{basicstyle=\small,style=myCustomMatlabStyle}
-	\lstinputlisting[]{example.c}
-	
-}
-
 %========================================
 %========================================
 
-\section[Rating comparison]{Rating sections vs. rating pages}
+\section[Evaluation Objectives]{Evaluation Objectives}
 
-\subsection{Rating sections vs. rating pages}
+\subsection{Evaluation Objectives}
 
 \frame{
 \frametitle{Idea}
 
 \begin{itemize}
-	\item Originates from a misunderstanding
 	\item Thought the task is to rank whole wiki pages
-	\item User wants the best section and not the "best" document
+	\item User wants the most relevant section and not the "best" document
 	\item So how is the relationship between page and section ranking
 \end{itemize}
 
-\begin{block}{\centering Calculation of Rating}
+\begin{block}{\centering Calculation of Ranking}
 	\begin{itemize}
-		\item \textbf{section}: rating / num\_words\_of\_section
-		\item \textbf{page}: sum\_of\_ratings / num\_words\_of\_page
+		\item \textbf{section}: ranking / num\_words\_of\_section
+		\item \textbf{page}: sum\_of\_rankings / num\_words\_of\_page
 	\end{itemize}
 \end{block}
 
 }
 
 \frame{
-	\frametitle{Query:"game", sorted by sum of section rankings}
+	\frametitle{Query:"game", Sorted by Sum of Section Rankings}
 	
 	\begin{figure}
 		\includegraphics[width=1.\textwidth]{2000_only_sec_sorted_by_sum} 
@@ -313,7 +405,7 @@ Database Systems Research Group\\
 }
 
 \frame{
-	\frametitle{Query:"game", adding the rank for the whole page}
+	\frametitle{Query:"game", Adding The Rank for the Whole Page}
 	
 	\begin{figure}
 		\includegraphics[width=1.\textwidth]{2000_together_sroted_by_sum} 
@@ -321,7 +413,7 @@ Database Systems Research Group\\
 }
 
 \frame{
-	\frametitle{Query:"game", ordered by max section rating}
+	\frametitle{Query:"game", Ordered by Max Section Ranking}
 	
 	\begin{figure}
 		\includegraphics[width=1.\textwidth]{ordered_by_rmax_together} 
@@ -329,7 +421,7 @@ Database Systems Research Group\\
 }
 
 \frame{
-	\frametitle{Query:"game AND team AND ball", ordered by max section rating}
+	\frametitle{Query:"game AND team AND ball", Ordered by Max Section Ranking}
 	
 	\begin{figure}
 		\includegraphics[width=1.\textwidth]{tripel_ordered_by_rmax_together} 
@@ -337,7 +429,7 @@ Database Systems Research Group\\
 }
 
 \frame{
-	\frametitle{distance between ratings}
+	\frametitle{Distance Between Rankings}
 	
 	\begin{block}{\centering Calculating Distance}
 		\begin{itemize}
@@ -381,19 +473,19 @@ Database Systems Research Group\\
 \subsection{Conclusion}
 
 \frame{
-	\frametitle{Conclusion and future work}
+	\frametitle{Conclusion and Future Work}
 	\begin{block}{\centering Conclusion}
 		\begin{itemize}
-			\item Ratings for sections and page return total different results
+			\item Rankings for sections and page return total different results
 			\item Tsvector has a lot of potential
 			\item PostgreSQL is easy customizable
 			\item TODO comparing performance and ranking to solr  
 		\end{itemize}
 	\end{block}
 
-	\begin{block}{\centering Future work}
+	\begin{block}{\centering Future Work}
 		\begin{itemize}
-			\item Improve the rating algorithm with tf idf information (ts\_stat)
+			\item Improve the ranking algorithm with tf idf information (ts\_stat)
 			\item Tests on big datasets
 		\end{itemize}
 	\end{block}	
