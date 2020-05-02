@@ -88,16 +88,20 @@ Database Systems Research Group\\
 \frame{	
 \frametitle{Objectives}
 
+	\begin{block}{}
+		IRS already exist.\\
+		But to our best knowledge there is no IRS made of a relational database.
+	\end{block}
+
 	\begin{itemize}
-		\item How does an IRS look made of a relational database
-		\item Finding different database models
+		\item Finding different sutiable database models
 		\item Python api for the database creation and communication
 		\item Crawl Wikipages to gather text data
+		\item Store and manage those text documents 
+		\item Support search querys with the boolean operator AND
+		\item Create a ranking function for the query results
+		\item Compare the ranking of whole wiki pages and their sections
 	\end{itemize}
-
-	\begin{block}{\centering}
-		Support search querys with the boolean operator AND
-	\end{block}
 } % END OF FRAME
 
 
@@ -147,7 +151,11 @@ Database Systems Research Group\\
 			\item Used package psycopg2 version 2.8.5
 			\item Custom converter for tsvector
 		\end{itemize}
-	\end{block}	
+	\end{block}
+
+	\begin{block}{\centering Document Definition}
+		A document in my case is either a page title, seciton title or section text
+	\end{block}
 } % END OF FRAME
 
 \frame{	
@@ -302,7 +310,7 @@ Database Systems Research Group\\
 	For example it is not possible to:
 	
 	\begin{itemize}
-		\item[-] count number of \textbf{all} lexemes in a tsvector
+		\item[-] count the occurrence of \textbf{all} lexemes in a tsvector \\ (not only the number of distinct lexemes)
 		\item[-] create a tsvector with an offset for the position index
 		\item[-] get the max index of a tsvector
 		\item[-] concatenate two tsvecotrs without changing the position values
@@ -379,18 +387,27 @@ Database Systems Research Group\\
 \subsection{Evaluation Objectives}
 
 \frame{
-\frametitle{Idea}
+\frametitle{Evaluation Objectives}
 
 \begin{itemize}
-	\item Thought the task is to rank whole wiki pages
-	\item User wants the most relevant section and not the "best" document
-	\item So how is the relationship between page and section ranking
+	\item Three different database models have been implemented
+	\item The model mainly using tsvector has proven most suitable
+	\item[+] GIN index for performance
+	\item[+] ts\_rank() function for ranking
+	\item[+] ts\_query even supports phraseto\_tsquery()
 \end{itemize}
 
 \begin{block}{\centering Calculation of Ranking}
 	\begin{itemize}
-		\item \textbf{section}: ranking / num\_words\_of\_section
-		\item \textbf{page}: sum\_of\_rankings / num\_words\_of\_page
+		\item[-] Either with ts\_rank() or Cover Density Ranking (CDR)
+		\item[-] Considers word occurrences and distance between words
+	\end{itemize}
+\end{block}
+
+\begin{block}{\centering Relationship Between Page and Section Ranking}
+	\begin{itemize}
+		\item \textbf{section ranking}: ranking / num\_words\_of\_section
+		\item \textbf{page ranking}: sum\_of\_rankings / num\_words\_of\_page
 	\end{itemize}
 \end{block}
 
