@@ -1,0 +1,82 @@
+term: sports
+section_id: 19777 ranking: 0.70944433064064
+section_id: 2304 ranking: 0.594261333021649
+section_id: 22231 ranking: 0.575361457667508
+section_id: 22249 ranking: 0.525923706140778
+section_id: 16964 ranking: 0.487671446650544
+section_id: 19775 ranking: 0.471142847431545
+section_id: 3 ranking: 0.461383419078476
+section_id: 1999 ranking: 0.447741025085832
+section_id: 1 ranking: 0.447213595499958
+section_id: 3675 ranking: 0.44721359549995
+
+
+term: game
+section_id: 49770 ranking: 0.541274614435635
+section_id: 20013 ranking: 0.524672182297103
+section_id: 2241 ranking: 0.524672182297103
+section_id: 13169 ranking: 0.5
+section_id: 8441 ranking: 0.5
+section_id: 8675 ranking: 0.5
+section_id: 12318 ranking: 0.5
+section_id: 8538 ranking: 0.5
+section_id: 9911 ranking: 0.5
+section_id: 12978 ranking: 0.5
+
+
+term: game & ball
+section_id: 1759 ranking: 0.111111111111111
+tsv: 'ball':1A 'game':2A
+section_id: 12053 ranking: 0.0666666666666667
+tsv: '500':1A 'ball':2A 'game':3A
+section_id: 8236 ranking: 0.0555555555555556
+tsv: 'ball':2A 'game':3A 'hail':1A
+section_id: 12040 ranking: 0.0555555555555556
+tsv: 'ball':3A 'game':4A 'list':1A
+section_id: 12270 ranking: 0.0555555555555556
+tsv: 'ball':4A 'bat':2A 'bat-and-bal':1A 'game':5A
+section_id: 23632 ranking: 0.0454545454545455
+tsv: 'ball':3A 'downsid':2A 'game':4A
+section_id: 7126 ranking: 0.0444444451067183
+tsv: 'ball':2B 'game':1B
+section_id: 12667 ranking: 0.0400000005960464
+tsv: 'ball':1B 'game':2B
+section_id: 13399 ranking: 0.0333333333333333
+tsv: 'american':2A 'ball':3A 'game':4A 'speedbal':1A
+section_id: 12781 ranking: 0.027027027027027
+tsv: 'ball':2A 'confeder':4A 'game':3A 'intern':1A
+
+term: game & ball
+section_id: 1759 ranking: 0.111111111111111
+tsv: 'ball':1A 'game':2A
+section_id: 12053 ranking: 0.0666666666666667
+tsv: '500':1A 'ball':2A 'game':3A
+section_id: 8236 ranking: 0.0555555555555556
+tsv: 'ball':2A 'game':3A 'hail':1A
+section_id: 12040 ranking: 0.0555555555555556
+tsv: 'ball':3A 'game':4A 'list':1A
+section_id: 12270 ranking: 0.0555555555555556
+tsv: 'ball':4A 'bat':2A 'bat-and-bal':1A 'game':5A
+section_id: 23632 ranking: 0.0454545454545455
+tsv: 'ball':3A 'downsid':2A 'game':4A
+section_id: 7126 ranking: 0.0444444451067183
+tsv: 'ball':2B 'game':1B
+section_id: 12667 ranking: 0.0400000005960464
+tsv: 'ball':1B 'game':2B
+section_id: 13399 ranking: 0.0333333333333333
+tsv: 'american':2A 'ball':3A 'game':4A 'speedbal':1A
+section_id: 12781 ranking: 0.027027027027027
+tsv: 'ball':2A 'confeder':4A 'game':3A 'intern':1A
+
+
+term: game & ball & team
+section_id: 13492 ranking: 0.0037254559305998
+section_id: 8223 ranking: 0.00343238919280296
+section_id: 12788 ranking: 0.00183127864643379
+section_id: 9893 ranking: 0.00176905529916019
+section_id: 7367 ranking: 0.00175936310613819
+section_id: 8177 ranking: 0.00170012851094091
+section_id: 13218 ranking: 0.00161781031373553
+section_id: 8207 ranking: 0.00161198932465499
+section_id: 9922 ranking: 0.00159846085042626
+section_id: 9522 ranking: 0.00155251319250785
